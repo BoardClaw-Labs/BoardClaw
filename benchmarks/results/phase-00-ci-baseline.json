@@ -1,0 +1,14 @@
+{
+  "id": "phase-00-ci-baseline",
+  "metrics": {
+    "bench.compare_script_present": 1,
+    "bench.expected_files_count": 10,
+    "bench.validate_script_present": 1,
+    "ci.workflow_present": 1,
+    "docs.required_files_present": 1,
+    "workspace.cargo_toml_present": 1,
+    "workspace.core_crate_present": 1,
+    "workspace.rust_toolchain_present": 1
+  },
+  "source": "scripts/collect_phase00_metrics.py"
+}

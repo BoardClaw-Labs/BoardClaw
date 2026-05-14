@@ -1,0 +1,50 @@
+{
+  "id": "phase-01-rasclaw-mvp",
+  "phase": "Phase 01: RasClaw MVP",
+  "status": "planned",
+  "summary": "Raspberry Pi local chat, board detection, read-only hardware tools, and SQLite memory.",
+  "metrics": [
+    {
+      "name": "daemon.startup_ms",
+      "operator": "lte",
+      "expected": 2000,
+      "unit": "ms",
+      "reason": "The local daemon should feel immediate on a Raspberry Pi."
+    },
+    {
+      "name": "daemon.idle_rss_mb",
+      "operator": "lte",
+      "expected": 64,
+      "unit": "MiB",
+      "reason": "BoardClaw should leave RAM for models and board workloads."
+    },
+    {
+      "name": "provider.ollama_healthcheck_ms",
+      "operator": "lte",
+      "expected": 2000,
+      "unit": "ms",
+      "reason": "Provider health must be fast enough for route decisions."
+    },
+    {
+      "name": "board.detect_success",
+      "operator": "eq",
+      "expected": 1,
+      "unit": "bool",
+      "reason": "The Raspberry Pi profile must detect correctly on target hardware."
+    },
+    {
+      "name": "tools.read_only_success_rate",
+      "operator": "gte",
+      "expected": 0.95,
+      "unit": "ratio",
+      "reason": "Read-only tools are the foundation for safe local inspection."
+    },
+    {
+      "name": "memory.sqlite_roundtrip_ms",
+      "operator": "lte",
+      "expected": 50,
+      "unit": "ms",
+      "reason": "Session and device graph memory must not dominate user latency."
+    }
+  ]
+}

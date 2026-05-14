@@ -1,0 +1,64 @@
+{
+  "id": "phase-00-ci",
+  "phase": "Phase 00: CI and Project Contracts",
+  "status": "active",
+  "summary": "Repository has enough CI, docs, Rust workspace, and benchmark machinery to start development safely.",
+  "metrics": [
+    {
+      "name": "ci.workflow_present",
+      "operator": "eq",
+      "expected": 1,
+      "unit": "bool",
+      "reason": "Open-source work needs CI before feature work starts."
+    },
+    {
+      "name": "workspace.cargo_toml_present",
+      "operator": "eq",
+      "expected": 1,
+      "unit": "bool",
+      "reason": "The Rust workspace must be testable."
+    },
+    {
+      "name": "workspace.rust_toolchain_present",
+      "operator": "eq",
+      "expected": 1,
+      "unit": "bool",
+      "reason": "The Rust toolchain must be pinned for reproducible CI."
+    },
+    {
+      "name": "workspace.core_crate_present",
+      "operator": "eq",
+      "expected": 1,
+      "unit": "bool",
+      "reason": "The first core crate must exist before feature work."
+    },
+    {
+      "name": "docs.required_files_present",
+      "operator": "eq",
+      "expected": 1,
+      "unit": "bool",
+      "reason": "The big-picture plan, risks, architecture, and benchmark process must be documented."
+    },
+    {
+      "name": "bench.expected_files_count",
+      "operator": "gte",
+      "expected": 10,
+      "unit": "count",
+      "reason": "Each planned phase needs expected benchmark data."
+    },
+    {
+      "name": "bench.compare_script_present",
+      "operator": "eq",
+      "expected": 1,
+      "unit": "bool",
+      "reason": "Expected and actual benchmark data must be compared by a repeatable tool."
+    },
+    {
+      "name": "bench.validate_script_present",
+      "operator": "eq",
+      "expected": 1,
+      "unit": "bool",
+      "reason": "Benchmark expectation files must be schema-validated in CI."
+    }
+  ]
+}

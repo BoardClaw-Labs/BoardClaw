@@ -1,0 +1,36 @@
+{
+  "id": "phase-08-uniclaw-sidecar",
+  "phase": "Phase 08: Uniclaw Sidecar",
+  "status": "planned",
+  "summary": "BoardClaw actions can be anchored into Uniclaw proposal and execution receipts.",
+  "metrics": [
+    {
+      "name": "uniclaw.proposal_submit_success",
+      "operator": "eq",
+      "expected": 1,
+      "unit": "bool",
+      "reason": "BoardClaw must be able to submit proposals to Uniclaw."
+    },
+    {
+      "name": "uniclaw.pending_blocks_execution_rate",
+      "operator": "eq",
+      "expected": 1.0,
+      "unit": "ratio",
+      "reason": "Pending approval must block dangerous tool execution."
+    },
+    {
+      "name": "uniclaw.tool_execution_receipt_success",
+      "operator": "eq",
+      "expected": 1,
+      "unit": "bool",
+      "reason": "Completed tools must record execution receipts."
+    },
+    {
+      "name": "uniclaw.receipt_attached_to_event_rate",
+      "operator": "eq",
+      "expected": 1.0,
+      "unit": "ratio",
+      "reason": "BoardClaw events must carry receipt references."
+    }
+  ]
+}

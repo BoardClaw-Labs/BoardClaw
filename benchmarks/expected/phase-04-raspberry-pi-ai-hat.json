@@ -1,0 +1,36 @@
+{
+  "id": "phase-04-raspberry-pi-ai-hat",
+  "phase": "Phase 04: Raspberry Pi AI HAT+ 2",
+  "status": "planned",
+  "summary": "Optional Hailo-Ollama route with safe fallback to CPU provider.",
+  "metrics": [
+    {
+      "name": "accelerator.detect_success",
+      "operator": "eq",
+      "expected": 1,
+      "unit": "bool",
+      "reason": "The profile must know whether the AI HAT+ 2 is present."
+    },
+    {
+      "name": "provider.hailo_route_selection_success",
+      "operator": "eq",
+      "expected": 1,
+      "unit": "bool",
+      "reason": "Supported models should route to Hailo when available."
+    },
+    {
+      "name": "provider.cpu_fallback_success",
+      "operator": "eq",
+      "expected": 1,
+      "unit": "bool",
+      "reason": "Provider failure must degrade safely."
+    },
+    {
+      "name": "telemetry.model_route_recorded_rate",
+      "operator": "eq",
+      "expected": 1.0,
+      "unit": "ratio",
+      "reason": "Users must be able to see which model route handled a task."
+    }
+  ]
+}

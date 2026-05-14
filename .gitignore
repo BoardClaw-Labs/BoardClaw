@@ -1,0 +1,5 @@
+/target/
+benchmarks/
+docs/
+*.tmp
+*.log

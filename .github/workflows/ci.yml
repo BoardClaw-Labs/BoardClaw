@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  rust-and-benchmarks:
+    name: Rust, docs, benchmark gates
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.95.0
+          components: rustfmt, clippy
+
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
+      - name: Run clippy
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+      - name: Run tests
+        run: cargo test --workspace --all-targets
+
+      - name: Validate benchmark specifications
+        run: python3 scripts/validate_benchmark_specs.py
+
+      - name: Collect phase 00 metrics
+        run: python3 scripts/collect_phase00_metrics.py --out benchmarks/results/phase-00-ci.latest.json
+
+      - name: Compare phase 00 metrics to expected thresholds
+        run: python3 scripts/compare_benchmark.py --expected benchmarks/expected/phase-00-ci.json --actual benchmarks/results/phase-00-ci.latest.json

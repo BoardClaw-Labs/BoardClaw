@@ -1,0 +1,36 @@
+{
+  "id": "phase-09-secuclaw-mobile",
+  "phase": "Phase 09: SecuClaw Mobile Verification",
+  "status": "planned",
+  "summary": "Mobile approval verifies high-risk physical actions before execution.",
+  "metrics": [
+    {
+      "name": "mobile.approval_summary_complete_rate",
+      "operator": "eq",
+      "expected": 1.0,
+      "unit": "ratio",
+      "reason": "The phone must show board, tool, target, risk, and expiry."
+    },
+    {
+      "name": "mobile.expired_approval_denial_rate",
+      "operator": "eq",
+      "expected": 1.0,
+      "unit": "ratio",
+      "reason": "Expired approvals must not execute physical actions."
+    },
+    {
+      "name": "mobile.valid_approval_executes_once_rate",
+      "operator": "eq",
+      "expected": 1.0,
+      "unit": "ratio",
+      "reason": "A valid approval must be single-use."
+    },
+    {
+      "name": "receipt.chain_verification_success",
+      "operator": "eq",
+      "expected": 1,
+      "unit": "bool",
+      "reason": "Proposal, approval, and execution receipts must verify as a chain."
+    }
+  ]
+}

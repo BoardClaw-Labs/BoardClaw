@@ -1,0 +1,36 @@
+{
+  "id": "phase-02-safe-control",
+  "phase": "Phase 02: Safe Control",
+  "status": "planned",
+  "summary": "Write tools are policy-gated, approval-aware, timed, and auditable.",
+  "metrics": [
+    {
+      "name": "policy.unsafe_write_denial_rate",
+      "operator": "eq",
+      "expected": 1.0,
+      "unit": "ratio",
+      "reason": "Unsafe writes must never execute without approval."
+    },
+    {
+      "name": "policy.eval_p95_us",
+      "operator": "lte",
+      "expected": 1000,
+      "unit": "us",
+      "reason": "Policy checks should be cheap enough to run before every tool."
+    },
+    {
+      "name": "tools.approved_gpio_write_sim_success",
+      "operator": "eq",
+      "expected": 1,
+      "unit": "bool",
+      "reason": "Approved write path must work in simulation before real hardware."
+    },
+    {
+      "name": "tools.write_audit_event_rate",
+      "operator": "eq",
+      "expected": 1.0,
+      "unit": "ratio",
+      "reason": "Every write must produce an audit event."
+    }
+  ]
+}

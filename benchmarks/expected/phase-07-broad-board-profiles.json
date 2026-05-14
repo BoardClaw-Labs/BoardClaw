@@ -1,0 +1,29 @@
+{
+  "id": "phase-07-broad-board-profiles",
+  "phase": "Phase 07: Broad Board Profiles",
+  "status": "planned",
+  "summary": "ODROID-H3+, BeagleBone AI-64, Le Potato, and Tinker Board 2S roles are honest.",
+  "metrics": [
+    {
+      "name": "profiles.role_classification_rate",
+      "operator": "eq",
+      "expected": 1.0,
+      "unit": "ratio",
+      "reason": "Each board must state whether it is a host, gateway, or satellite."
+    },
+    {
+      "name": "profiles.low_end_large_model_defaults",
+      "operator": "eq",
+      "expected": 0,
+      "unit": "count",
+      "reason": "Low-end boards must not default to large local models."
+    },
+    {
+      "name": "profiles.safe_unknown_mode_success",
+      "operator": "eq",
+      "expected": 1,
+      "unit": "bool",
+      "reason": "Unknown boards must start in a safe read-only profile."
+    }
+  ]
+}

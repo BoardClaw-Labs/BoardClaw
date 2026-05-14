@@ -1,0 +1,36 @@
+{
+  "id": "phase-06-jetson-robotics",
+  "phase": "Phase 06: Jetson Robotics Profile",
+  "status": "planned",
+  "summary": "Jetson robotics and VLM support without hard real-time LLM control.",
+  "metrics": [
+    {
+      "name": "jetson.provider_route_success",
+      "operator": "eq",
+      "expected": 1,
+      "unit": "bool",
+      "reason": "Jetson must have a visible accelerated provider route."
+    },
+    {
+      "name": "ros2.bounded_publish_success",
+      "operator": "eq",
+      "expected": 1,
+      "unit": "bool",
+      "reason": "Robotics commands must pass through bounded ROS 2 tools."
+    },
+    {
+      "name": "robot.motion_without_safety_metadata_denial_rate",
+      "operator": "eq",
+      "expected": 1.0,
+      "unit": "ratio",
+      "reason": "Motion commands without safety metadata must be denied."
+    },
+    {
+      "name": "robot.llm_direct_motor_loop_count",
+      "operator": "eq",
+      "expected": 0,
+      "unit": "count",
+      "reason": "The LLM must never own the real-time motor loop."
+    }
+  ]
+}
