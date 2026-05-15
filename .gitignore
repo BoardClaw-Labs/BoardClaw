@@ -1,5 +1,5 @@
 /target/
-benchmarks/
-docs/
+benchmarks/results/*.local.json
+benchmarks/results/*.latest.json
 *.tmp
 *.log

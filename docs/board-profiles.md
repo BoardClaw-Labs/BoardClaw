@@ -1,7 +1,7 @@
 # Board Profiles
 
 BoardClaw supports boards by adding profiles. A profile describes what is safe,
-available, and recommended for that board.
+available, recommended, and benchmarked for that board.
 
 The goal is one agent core with different board profiles and provider routes.
 
@@ -10,202 +10,171 @@ The goal is one agent core with different board profiles and provider routes.
 | Tier | Meaning |
 |---|---|
 | Tier 0 | Documented only, no runtime support |
-| Tier 1 | Boots, local provider works, read-only tools work |
-| Tier 2 | GPIO/I2C/SPI/UART tools validated |
-| Tier 3 | Camera, MQTT/Home Assistant, and storage profile validated |
-| Tier 4 | Accelerator/provider profile validated |
-| Tier 5 | Safety profile, Uniclaw receipts, and mobile approval validated |
+| Tier 1 | Boots, detection works, local or LAN provider route is visible |
+| Tier 2 | GPIO/I2C/SPI/UART read-only tools validated |
+| Tier 3 | Write tools, MQTT/Home Assistant, camera, and persistence validated |
+| Tier 4 | Accelerator/provider profile validated with benchmark data |
+| Tier 5 | Approval, receipts, mobile verification, and release hardening validated |
 
-The Raspberry Pi profile should reach Tier 3 before adding many boards. Jetson
-and RK3588 boards can then validate the provider abstraction.
+The first version should push three reference boards deep before adding many
+shallow profiles.
 
-## Board Matrix
+## First-Version Board Matrix
 
-| Board | Family | BoardClaw role | Local model path | Risk |
+| Board | Role | BoardClaw focus | Local model path | Main risk | Mitigation |
+|---|---|---|---|---|---|
+| Raspberry Pi 5 | IoT reference | sensors, 40-pin GPIO, MIPI camera/display, PCIe storage, MQTT, local web/API | Ollama or llama.cpp with 1B-4B instruct model | thermal, power, GPIO mistakes | active cooling, official power, pin maps, approval-gated writes |
+| Orange Pi 5 Plus | Smart Home reference | Home Assistant, MQTT, dual 2.5G gateway I/O, storage/event history, RK3588 family | Ollama CPU first, RKLLM/RKNN experimental later | OS/kernel variance, NPU conversion | CPU baseline first, profile tiers, NPU benchmarks before default |
+| NVIDIA Jetson Orin Nano | Robotics reference | camera/VLM, ROS 2, bounded robot commands, AI-powered robotics/vision | NVIDIA provider route, Ollama/llama.cpp fallback | real-time safety, JetPack complexity | ROS 2/MCU boundary, container notes, safety metadata gates |
+
+## Final Board Matrix
+
+| Board | Family | Final role | Model route | Support posture |
 |---|---|---|---|---|
-| Raspberry Pi 5 / CM5 | Raspberry Pi | First complete profile, RasClaw | Ollama CPU, llama.cpp, Hailo-Ollama with AI HAT+ 2 | Thermal, power, small-model quality |
-| Orange Pi 5 Plus | RK3588 | High-performance ARM automation gateway | Ollama CPU first, RKLLM/RKNN later | Vendor NPU tooling and kernel variance |
-| NVIDIA Jetson Orin Nano | Jetson | Robotics/VLM profile | NVIDIA containers, TensorRT-LLM, Ollama as fallback | JetPack complexity, memory pressure |
-| ODROID-H3+ | x86 | Edge gateway, NAS, lab server | Ollama/llama.cpp CPU, OpenVINO experiments | Discontinued board, no dedicated NPU |
-| Radxa ROCK 5B+ | RK3588 | RK3588 flagship profile | Ollama CPU first, RKLLM/RKNN later | NPU conversion and OS drift |
-| BeagleBone AI-64 | TI TDA4VM | Embedded control and vision | Tiny local model or remote/LAN model | 4GB RAM, DSP/NPU toolchain complexity |
-| Libre Computer Le Potato | Amlogic S905X | Low-cost IoT gateway | Tiny local model only, remote/LAN fallback | Limited RAM/CPU, no modern NPU |
-| ASUS Tinker Board 2S | RK3399 | Industrial IoT / FOTA profile | Tiny local model, remote/LAN fallback | Older SoC, limited model capacity |
-| Banana Pi BPI-M7 | RK3588 | Compact RK3588 node | Ollama CPU first, RKLLM/RKNN later | Board support maturity |
+| Raspberry Pi 5 / CM5 | Raspberry Pi | IoT and maker automation host | Ollama, llama.cpp, optional Hailo-supported route | first-class reference |
+| Orange Pi 5 Plus | RK3588 | smart-home/automation gateway | Ollama CPU first, RKLLM/RKNN experimental | first-class reference |
+| NVIDIA Jetson Orin Nano | Jetson | robotics and local vision host | NVIDIA provider path, local VLM/text route | first-class reference |
+| Radxa ROCK 5B+ | RK3588 | high-performance RK3588 node | reuse Orange Pi family route with board-specific pins | follow after Orange Pi |
+| Banana Pi BPI-M7 | RK3588 | compact RK3588 automation node | reuse RK3588 family route | follow after Orange Pi |
+| ODROID-H3+ | x86 | edge server, NAS, automation hub | Ollama/llama.cpp CPU, OpenVINO experiments | useful but not accelerator-first |
+| BeagleBone AI-64 | TI TDA4VM | embedded control and vision | tiny local model or LAN model hub | strict hardware permissions |
+| Libre Computer Le Potato | Amlogic S905X | low-cost IoT satellite | tiny local command model or LAN model | not marketed as heavy LLM host |
+| ASUS Tinker Board 2S | RK3399 | industrial IoT-style node | tiny local model or LAN model | validate OS and FOTA story first |
 
-## Raspberry Pi 5 / CM5
+## Raspberry Pi 5
 
-Why first:
+Why it is the IoT reference:
 
-- strongest community
+- strongest community and documentation
 - stable GPIO/camera ecosystem
+- standard 40-pin header, MIPI camera/display, and PCIe expansion
 - Raspberry Pi OS support
-- official AI HAT+ 2 path
-- many real IoT/robotics examples
+- production commitment until at least January 2036
+- accessible test fixtures
+- optional AI HAT-class acceleration
+- many real IoT and automation examples
 
 Recommended baseline:
 
 - Raspberry Pi 5 8GB or 16GB
-- NVMe storage if possible
-- active cooling
 - official power supply
-- local Ollama provider first
-- AI HAT+ 2 optional for GenAI acceleration
+- active cooling
+- NVMe storage when possible
+- Raspberry Pi OS 64-bit
+- known-good GPIO/I2C/SPI test fixtures
 
-Use cases:
+First use cases:
 
-- Home Assistant local copilot
 - MQTT sensor gateway
-- camera and smart automation node
-- ROS 2 companion computer
+- camera and local automation node
+- Home Assistant companion
 - embedded workbench assistant
+- approval-gated relay demo
 
 ## Orange Pi 5 Plus
 
-Orange Pi 5 Plus uses Rockchip RK3588 with a 6 TOPS NPU and up to 32GB RAM
-options. It is attractive for edge gateway work because of CPU performance,
-storage, display, and dual Ethernet options.
+Why it is the Smart Home reference:
 
-BoardClaw should support it through an `rk3588` family profile:
+- RK3588 CPU performance is strong for a gateway board
+- the board class includes 6 TOPS NPU capability, but model conversion is the
+  hard part
+- high RAM options are useful for local services
+- dual 2.5G Ethernet and storage options fit gateway deployments
+- storage and networking are suitable for Home Assistant/MQTT/event history
+- successful profile work can be reused by Radxa ROCK 5B+ and Banana Pi BPI-M7
 
-- CPU/Ollama first
-- RKNN/RKLLM later
-- profile-specific GPIO/pin maps
-- thermal and power warnings
-- board image compatibility notes
+Recommended baseline:
 
-Do not block Orange Pi support on NPU acceleration. The first useful profile can
-be CPU inference plus hardware tools.
+- CPU/Ollama route first
+- RKLLM/RKNN marked experimental until conversion and benchmarks pass
+- Home Assistant adapter
+- MQTT automation loop
+- storage/event persistence
+- thermal/power telemetry
+
+Do not block Orange Pi support on NPU acceleration. The first useful profile is
+CPU inference plus reliable automation tools.
 
 ## NVIDIA Jetson Orin Nano
 
-Jetson Orin Nano is the strongest robotics and VLM target in the list.
+Why it is the Robotics reference:
 
-Use it for:
+- strongest camera and vision target in the first set
+- NVIDIA acceleration ecosystem
+- good fit for local VLM experiments
+- natural ROS 2 companion board
+- NVIDIA positions the developer kit for AI-powered robots, smart drones, and
+  intelligent cameras
 
-- camera-heavy robots
-- object detection plus language control
-- ROS 2 integration
-- local VLM experiments
-- TensorRT-accelerated inference
+Recommended baseline:
 
-The Jetson profile should not try to look like Raspberry Pi. It needs its own
-provider profile, container strategy, camera strategy, and ROS 2 defaults.
+- JetPack-aware detection
+- NVIDIA provider route
+- camera capture and vision metadata
+- ROS 2 bounded publish/service tools
+- watchdog and emergency-stop status inputs
+- motion commands denied without safety metadata
 
-## ODROID-H3+
+The Jetson profile should not pretend to be a Raspberry Pi profile. It needs its
+own provider strategy, container notes, camera path, and robotics safety model.
 
-ODROID-H3+ is an x86 edge gateway board. It is especially useful for:
+## RK3588 Family Reuse
 
-- local automation server
-- MQTT broker plus BoardClaw
-- NAS/logging node
-- Home Assistant host
-- CPU inference with larger RAM than many SBCs
-
-Because it has no modern dedicated NPU, treat it as:
-
-- reliable x86 local server
-- good llama.cpp/Ollama CPU host
-- possible OpenVINO test target
-
-It is listed as discontinued by Hardkernel, so BoardClaw should support it as a
-requested profile but avoid making it the long-term x86 flagship.
-
-## Radxa ROCK 5B+
-
-Radxa ROCK 5B+ is another RK3588 board, with up to 32GB LPDDR5 and NVMe/eMMC
-options. It should share most provider work with Orange Pi 5 Plus and Banana Pi
-BPI-M7 under the `rk3588` family.
-
-The right abstraction:
+Orange Pi 5 Plus, Radxa ROCK 5B+, and Banana Pi BPI-M7 should share a family
+base:
 
 ```text
-rk3588-family provider profile
-  + board-specific pins, cameras, boot quirks, package notes
+rk3588-family
+  provider baseline: Ollama CPU
+  experimental provider: RKLLM/RKNN
+  shared risk: OS drift, NPU conversion, thermal behavior
+  board-specific data: pins, cameras, storage, image notes
 ```
 
-## BeagleBone AI-64
+BoardClaw should measure how much code the second RK3588 board reuses. If reuse
+is low, the profile abstraction is wrong.
 
-BeagleBone AI-64 is not the best LLM host. It is a strong embedded control and
-vision board.
+## Low-Power And Special Boards
 
-Use it for:
+Some boards are excellent control nodes but weak local LLM hosts.
 
-- industrial I/O
-- deterministic-ish embedded experiments
-- camera/vision accelerators
-- cape ecosystem
-- robotics sensor/control companion
+BoardClaw should label them honestly:
 
-The model route should be conservative:
+- host: can run the default local model route
+- gateway: can run services and a small local model, may use LAN model hub
+- satellite: good at control/sensors, not a heavy reasoning host
 
-- tiny local model for intent classification or command parsing
-- LAN model hub for heavier reasoning
-- strict hardware tool permissions
-
-## Libre Computer Le Potato
-
-Le Potato should be a lightweight IoT profile:
-
-- MQTT gateway
-- small automation node
-- sensor reader
-- Home Assistant satellite
-
-It should not be marketed as a serious local LLM board. Use tiny models or a LAN
-fallback. Keep tools light and reliable.
-
-## ASUS Tinker Board 2S
-
-Tinker Board 2S is useful for industrial IoT-style deployments because ASUS
-positions it with management/FOTA tooling.
-
-Treat it as:
-
-- IoT device profile
-- local gateway with small model or remote fallback
-- stable deployment target once OS support is proven
-
-It is not a primary GenAI acceleration target.
-
-## Banana Pi BPI-M7
-
-Banana Pi BPI-M7 is another RK3588-family board with compact dimensions,
-dual 2.5GbE, eMMC, camera/display, M.2, and GPIO.
-
-It should share the RK3588 strategy:
-
-- Ollama/llama.cpp first
-- RKLLM/RKNN second
-- board-specific IO validation
+This avoids false promises and helps users choose the right hardware.
 
 ## Profile File Shape
 
 Example:
 
 ```yaml
-id: radxa_rock_5b_plus
-family: rk3588
-arch: arm64
+id: jetson_orin_nano
+family: jetson
+reference_role: robotics
+arch: aarch64
 status: tier_0
 providers:
   preferred:
+    - nvidia
+  fallback:
     - ollama
-  experimental:
-    - rkllm
-    - rknn
+    - llama_cpp
 hardware:
   gpio: true
   i2c: true
   spi: true
   uart: true
-  can: adapter_required
-  camera: board_specific
+  camera: nvidia_stack
+  ros2: supported
 safety:
   default_mode: read_only
   writes_require_approval: true
-  require_pinmap_confirmation: true
-notes:
-  - Validate OS image and kernel interfaces before enabling write tools.
+  robot_motion_requires_safety_metadata: true
+  llm_direct_motor_loop: forbidden
+benchmarks:
+  provider_route_required: true
+  motion_denial_required: true
 ```
-

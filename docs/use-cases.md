@@ -2,6 +2,13 @@
 
 BoardClaw focuses on IoT, smart automation, robotics, and embedded engineering.
 
+The first version maps those domains to three reference boards:
+
+- Raspberry Pi 5 for IoT sensors, buses, GPIO, camera, and MQTT.
+- Orange Pi 5 Plus for smart-home gateway work, Home Assistant, automation
+  history, and RK3588 family reuse.
+- NVIDIA Jetson Orin Nano for robotics, local vision, and ROS 2 boundaries.
+
 ## IoT
 
 ### Local Sensor Gateway
@@ -160,5 +167,4 @@ network APIs:
 - test logs
 - report generation
 
-Use Uniclaw receipts for tests where provenance matters.
-
+Use approval and receipt metadata for tests where provenance matters.

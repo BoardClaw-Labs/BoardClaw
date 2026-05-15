@@ -1,8 +1,8 @@
 {
-  "id": "phase-07-broad-board-profiles",
-  "phase": "Phase 07: Broad Board Profiles",
+  "id": "phase-06-more-board-profiles",
+  "phase": "Phase 06: More Board Profiles",
   "status": "planned",
-  "summary": "ODROID-H3+, BeagleBone AI-64, Le Potato, and Tinker Board 2S roles are honest.",
+  "summary": "Radxa ROCK 5B+, Banana Pi BPI-M7, ODROID-H3+, BeagleBone AI-64, Le Potato, and Tinker Board 2S roles are honest.",
   "metrics": [
     {
       "name": "profiles.role_classification_rate",
@@ -24,6 +24,13 @@
       "expected": 1,
       "unit": "bool",
       "reason": "Unknown boards must start in a safe read-only profile."
+    },
+    {
+      "name": "rk3588.second_board_profile_reuse_rate",
+      "operator": "gte",
+      "expected": 0.75,
+      "unit": "ratio",
+      "reason": "The second RK3588 board should reuse the family abstraction."
     }
   ]
 }

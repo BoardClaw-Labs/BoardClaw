@@ -40,6 +40,31 @@ pub enum ModelClass {
     Large,
 }
 
+/// Product role a board profile is expected to prove.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ReferenceRole {
+    Iot,
+    SmartHome,
+    Robotics,
+    EdgeGateway,
+    EmbeddedControl,
+    Satellite,
+}
+
+/// Message channels that normalize external input into BoardClaw events.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ChannelKind {
+    Cli,
+    LocalWeb,
+    HttpApi,
+    Mqtt,
+    HomeAssistant,
+    Telegram,
+    Matrix,
+    Ros2,
+    MobileApproval,
+}
+
 /// Risk level for hardware and automation tools.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum ToolRisk {
@@ -59,12 +84,13 @@ impl ToolRisk {
 }
 
 /// Declarative board capability profile.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct BoardProfile {
     pub id: &'static str,
     pub family: BoardFamily,
+    pub reference_role: ReferenceRole,
     pub arch: &'static str,
-    pub first_class_target: bool,
+    pub first_version_target: bool,
     pub providers: &'static [ProviderKind],
     pub model_classes: &'static [ModelClass],
     pub gpio: bool,
@@ -114,8 +140,9 @@ impl ToolSpec {
 pub const RASPBERRY_PI_5: BoardProfile = BoardProfile {
     id: "raspberry_pi_5",
     family: BoardFamily::RaspberryPi,
+    reference_role: ReferenceRole::Iot,
     arch: "aarch64",
-    first_class_target: true,
+    first_version_target: true,
     providers: &[
         ProviderKind::Ollama,
         ProviderKind::LlamaCpp,
@@ -130,11 +157,32 @@ pub const RASPBERRY_PI_5: BoardProfile = BoardProfile {
     accelerator_required: false,
 };
 
+pub const ORANGE_PI_5_PLUS: BoardProfile = BoardProfile {
+    id: "orange_pi_5_plus",
+    family: BoardFamily::Rk3588,
+    reference_role: ReferenceRole::SmartHome,
+    arch: "aarch64",
+    first_version_target: true,
+    providers: &[
+        ProviderKind::Ollama,
+        ProviderKind::LlamaCpp,
+        ProviderKind::RkLlm,
+    ],
+    model_classes: &[ModelClass::Small, ModelClass::Medium],
+    gpio: true,
+    i2c: true,
+    spi: true,
+    uart: true,
+    camera: true,
+    accelerator_required: false,
+};
+
 pub const JETSON_ORIN_NANO: BoardProfile = BoardProfile {
     id: "jetson_orin_nano",
     family: BoardFamily::Jetson,
+    reference_role: ReferenceRole::Robotics,
     arch: "aarch64",
-    first_class_target: false,
+    first_version_target: true,
     providers: &[
         ProviderKind::TensorRt,
         ProviderKind::Ollama,
@@ -152,8 +200,9 @@ pub const JETSON_ORIN_NANO: BoardProfile = BoardProfile {
 pub const LE_POTATO: BoardProfile = BoardProfile {
     id: "le_potato",
     family: BoardFamily::LowCostArm,
+    reference_role: ReferenceRole::Satellite,
     arch: "aarch64",
-    first_class_target: false,
+    first_version_target: false,
     providers: &[ProviderKind::RemoteOpenAiCompatible],
     model_classes: &[ModelClass::Tiny],
     gpio: true,
@@ -182,6 +231,25 @@ pub const SHELL_SAFE_EXEC: ToolSpec = ToolSpec {
     write_operation: true,
 };
 
+/// The three reference profiles that define BoardClaw's first complete version.
+#[must_use]
+pub const fn first_version_profiles() -> [BoardProfile; 3] {
+    [RASPBERRY_PI_5, ORANGE_PI_5_PLUS, JETSON_ORIN_NANO]
+}
+
+/// Channels that should be proven before the first complete release.
+#[must_use]
+pub const fn first_version_channels() -> &'static [ChannelKind] {
+    &[
+        ChannelKind::Cli,
+        ChannelKind::LocalWeb,
+        ChannelKind::HttpApi,
+        ChannelKind::Mqtt,
+        ChannelKind::HomeAssistant,
+        ChannelKind::Ros2,
+    ]
+}
+
 /// BoardClaw's recommended trusted-core implementation language.
 #[must_use]
 pub const fn recommended_core_language() -> &'static str {
@@ -199,18 +267,64 @@ mod tests {
     }
 
     #[test]
-    fn raspberry_pi_is_first_class_and_local_first() {
+    fn first_version_has_three_reference_roles() {
+        let profiles = std::hint::black_box(first_version_profiles());
+        assert_eq!(profiles.len(), 3);
+        assert!(profiles.iter().all(|profile| profile.first_version_target));
+        assert!(
+            profiles
+                .iter()
+                .any(|profile| profile.reference_role == ReferenceRole::Iot)
+        );
+        assert!(
+            profiles
+                .iter()
+                .any(|profile| profile.reference_role == ReferenceRole::SmartHome)
+        );
+        assert!(
+            profiles
+                .iter()
+                .any(|profile| profile.reference_role == ReferenceRole::Robotics)
+        );
+    }
+
+    #[test]
+    fn raspberry_pi_is_iot_reference_and_local_first() {
         let profile = std::hint::black_box(&RASPBERRY_PI_5);
-        assert!(profile.first_class_target);
+        assert_eq!(profile.reference_role, ReferenceRole::Iot);
+        assert!(profile.first_version_target);
         assert!(profile.has_cpu_baseline_provider());
         assert_eq!(profile.default_local_model_class(), Some(ModelClass::Small));
     }
 
     #[test]
-    fn jetson_profile_allows_medium_or_larger_models() {
+    fn orange_pi_is_smart_home_rk3588_reference() {
+        let profile = std::hint::black_box(&ORANGE_PI_5_PLUS);
+        assert_eq!(profile.family, BoardFamily::Rk3588);
+        assert_eq!(profile.reference_role, ReferenceRole::SmartHome);
+        assert!(profile.first_version_target);
+        assert!(profile.has_cpu_baseline_provider());
+        assert!(profile.providers.contains(&ProviderKind::RkLlm));
+    }
+
+    #[test]
+    fn jetson_profile_allows_medium_or_larger_models_for_robotics() {
         let profile = std::hint::black_box(&JETSON_ORIN_NANO);
+        assert_eq!(profile.reference_role, ReferenceRole::Robotics);
+        assert!(profile.first_version_target);
         assert!(profile.model_classes.contains(&ModelClass::Medium));
         assert!(profile.providers.contains(&ProviderKind::TensorRt));
+    }
+
+    #[test]
+    fn first_version_channels_cover_iot_smart_home_and_robotics() {
+        let channels = std::hint::black_box(first_version_channels());
+        assert!(channels.contains(&ChannelKind::Mqtt));
+        assert!(channels.contains(&ChannelKind::HomeAssistant));
+        assert!(channels.contains(&ChannelKind::Ros2));
+        assert!(channels.contains(&ChannelKind::LocalWeb));
+        assert!(channels.contains(&ChannelKind::HttpApi));
+        assert!(!channels.contains(&ChannelKind::MobileApproval));
     }
 
     #[test]

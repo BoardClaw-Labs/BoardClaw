@@ -1,8 +1,8 @@
 {
-  "id": "phase-02-safe-control",
-  "phase": "Phase 02: Safe Control",
+  "id": "phase-04-shared-safety-layer",
+  "phase": "Phase 04: Shared Safety Layer",
   "status": "planned",
-  "summary": "Write tools are policy-gated, approval-aware, timed, and auditable.",
+  "summary": "Shared tool permissions, approvals, audit events, dry-run mode, read-only defaults, and dangerous-write gates are enforced across the three reference profiles.",
   "metrics": [
     {
       "name": "policy.unsafe_write_denial_rate",
@@ -31,6 +31,13 @@
       "expected": 1.0,
       "unit": "ratio",
       "reason": "Every write must produce an audit event."
+    },
+    {
+      "name": "shell.raw_access_default_count",
+      "operator": "eq",
+      "expected": 0,
+      "unit": "count",
+      "reason": "Raw shell access must not be exposed by default."
     }
   ]
 }

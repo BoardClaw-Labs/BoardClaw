@@ -1,211 +1,243 @@
 # Roadmap
 
-BoardClaw should be built in narrow, testable phases.
+BoardClaw should be built as three deep reference profiles on one shared core.
+Each phase has a matching expected benchmark file.
 
-## Phase 0: Planning and Contracts
-
-Status: current.
+## Phase 0: Core Contracts
 
 Deliverables:
 
-- README
-- docs
+- README and docs
 - CI workflow
 - Rust workspace
 - initial `boardclaw-core` crate
-- board profile schema
-- provider interface sketch
-- model selection policy
-- implementation language decision
-- tool manifest schema
-- safety policy model
-- Raspberry Pi MVP definition
+- profile schema vocabulary
+- provider interface vocabulary
+- channel vocabulary
+- tool risk model
 - benchmark expectation files
 - benchmark comparison scripts
 
 Exit criteria:
 
-- a contributor can explain BoardClaw without private context
-- the first implementation tasks are clear
+- contributors can explain BoardClaw without private context
 - CI can test formatting, linting, unit tests, and benchmark expectations
+- phase-00 benchmark comparison passes
 
-## Phase 1: RasClaw MVP
+Benchmark:
 
-Target: Raspberry Pi 5.
+- `benchmarks/expected/phase-00-ci.json`
+
+## Phase 1: Raspberry Pi 5 IoT Profile
 
 Deliverables:
 
-- `boardclawd` daemon
-- CLI channel
-- local HTTP API
-- Ollama provider
-- suitable 1B-4B local model default
-- SQLite memory
-- board detection
-- read-only hardware tools
-- event log
+- Raspberry Pi 5 profile
+- GPIO/I2C/SPI/UART read-only tools
+- MQTT tools
+- sensor workflows
+- camera capture
+- local Ollama route
+- llama.cpp route later
+- local web, CLI, and HTTP API channels
 
 Exit criteria:
 
 - user can chat locally
 - agent can inspect board state
 - agent can scan/read safe hardware interfaces
-- no root shell required for basic operation
+- MQTT loopback works
+- unsafe GPIO/PWM writes are denied unless explicitly approved
 
-## Phase 2: Safe Control
+Benchmark:
 
-Deliverables:
+- `benchmarks/expected/phase-01-raspberry-pi-iot.json`
 
-- write tools behind approval
-- allowlists
-- dry-run mode
-- hardware helper daemon
-- tool timeouts
-- risk levels
-- local web UI for approvals
-
-Exit criteria:
-
-- GPIO relay demo works with approval
-- I2C/UART writes are gated
-- failed tools are logged clearly
-- user can disable all write tools
-
-## Phase 3: Automation
+## Phase 2: Orange Pi 5 Plus Smart Home Profile
 
 Deliverables:
 
-- MQTT channel
-- Home Assistant integration
-- schedules
+- Orange Pi 5 Plus profile
+- RK3588 family abstraction
+- Home Assistant adapter
+- MQTT broker workflows
+- local dashboard support
 - device graph
-- automation history
-- camera capture
+- storage/event-history profile
+- Ollama or llama.cpp CPU route first
+- RKNN/RKLLM later only after CPU path works
 
 Exit criteria:
 
-- local smart automation demo works
-- user can create and inspect automation rules
-- all automations have audit events
+- smart-home gateway demo works in simulation
+- Home Assistant service calls are policy checked
+- device graph survives restart
+- RK3588 family data is reusable by later boards
 
-## Phase 4: Raspberry Pi AI HAT+ 2
+Benchmark:
 
-Deliverables:
+- `benchmarks/expected/phase-02-orange-pi-smart-home.json`
 
-- accelerator detection
-- Hailo-Ollama provider adapter
-- model availability check
-- performance telemetry
-- fallback to regular Ollama
-
-Exit criteria:
-
-- BoardClaw can select CPU Ollama or Hailo-Ollama by profile
-- model route is visible to the user
-
-## Phase 5: RK3588 Family
-
-Targets:
-
-- Orange Pi 5 Plus
-- Radxa ROCK 5B+
-- Banana Pi BPI-M7
+## Phase 3: Jetson Orin Nano Robotics Profile
 
 Deliverables:
 
-- `rk3588` family profile
-- per-board pin maps
-- CPU/Ollama provider support
-- RKLLM/RKNN experimental provider
-- thermal/power notes
-
-Exit criteria:
-
-- one RK3588 board reaches Tier 2
-- second RK3588 board reuses the family profile with minimal code
-
-## Phase 6: Jetson Robotics Profile
-
-Target: NVIDIA Jetson Orin Nano.
-
-Deliverables:
-
-- JetPack-aware detection
-- NVIDIA provider route
-- camera/VLM pipeline
+- Jetson Orin Nano profile
 - ROS 2 bridge
-- bounded robot command tools
+- camera/perception tools
+- bounded movement command proposals
+- NVIDIA provider route
+- local VLM experiments
+- direct motor-loop control forbidden
 
 Exit criteria:
 
-- robot companion demo works
+- robot companion demo works in simulation
 - motion commands require safety metadata
 - no direct motor loop is controlled by the LLM
 
-## Phase 7: x86 and Low-Cost Profiles
+Benchmark:
+
+- `benchmarks/expected/phase-03-jetson-robotics.json`
+
+## Phase 4: Shared Safety Layer
+
+Deliverables:
+
+- tool permissions
+- approvals
+- audit events
+- dry-run mode
+- read-only default
+- dangerous-write gates
+- least-privilege hardware helper interface
+
+Exit criteria:
+
+- one policy system gates all three reference profiles
+- risky actions can become pending
+- denied actions explain why
+- every write attempt records an audit event
+
+Benchmark:
+
+- `benchmarks/expected/phase-04-shared-safety-layer.json`
+
+## Phase 5: Cross-Board Demo
+
+Deliverables:
+
+- shared cross-board event flow
+- Raspberry Pi sensor/MQTT publisher
+- Orange Pi smart-home automation coordinator
+- Jetson camera/perception and robot inspection proposal
+- one event/audit model
+- one result-reporting flow
+
+Exit criteria:
+
+- BoardClaw is demonstrably one multi-board control system
+- three boards cooperate without separate product forks
+- all actions and denials are visible in one audit trail
+
+Benchmark:
+
+- `benchmarks/expected/phase-05-cross-board-demo.json`
+
+## Phase 6: More Board Profiles
 
 Targets:
 
+- Radxa ROCK 5B+
+- Banana Pi BPI-M7
 - ODROID-H3+
+- BeagleBone AI-64
 - Libre Computer Le Potato
 - ASUS Tinker Board 2S
-- BeagleBone AI-64
 
 Deliverables:
 
-- x86 gateway profile
-- low-cost IoT satellite profile
-- BeagleBone embedded/vision profile
-- remote/LAN fallback profiles
+- profile tiers
+- host/gateway/satellite classification
+- board-specific safety notes
+- RK3588 reuse measurement
+- safe unknown profile
 
 Exit criteria:
 
-- BoardClaw can clearly say which boards are local-LLM hosts and which are
-  satellite/control nodes
+- BoardClaw can clearly say which boards are local model hosts and which are
+  lightweight control nodes
+- unsupported features are marked honestly
 
-## Phase 8: Uniclaw Optional Sidecar
+Benchmark:
+
+- `benchmarks/expected/phase-06-more-board-profiles.json`
+
+## Phase 7: Provider Acceleration And Model Telemetry
 
 Deliverables:
 
-- proposal API adapter
-- tool execution receipt adapter
+- provider capability reports
+- route telemetry
+- board/provider/model benchmark collector
+- Raspberry Pi accelerator route when available
+- RK route experimental validation
+- Jetson accelerated route
+- fallback behavior
+
+Exit criteria:
+
+- model route is visible to the user
+- CPU fallback works
+- acceleration is never default without benchmark proof
+
+Benchmark:
+
+- `benchmarks/expected/phase-07-provider-acceleration.json`
+
+## Phase 8: Approval And Receipts
+
+Deliverables:
+
+- proposal object
 - pending approval flow
-- receipt references in BoardClaw event log
+- local approval API
+- optional mobile/PWA approval surface
+- single-use approval token
+- receipt metadata in event log
+- proposal/approval/execution chain verification
 
 Exit criteria:
 
-- high-risk GPIO write can require Uniclaw approval
-- tool execution receipt verifies independently
+- risky action can become pending
+- valid approval executes once
+- expired approval is denied
+- event log can verify proposal, approval, and execution metadata
 
-## Phase 9: SecuClaw
+Benchmark:
 
-Deliverables:
+- `benchmarks/expected/phase-08-approval-receipts.json`
 
-- mobile verification app or mobile web approval
-- passkey/biometric approval
-- receipt verification on mobile
-- remote approval policies
-
-Exit criteria:
-
-- user can approve a risky board action from phone
-- BoardClaw executes only after valid approval
-- receipt chain proves proposal, approval, and execution
-
-## Phase 10: Hardening
+## Phase 9: Release Hardening
 
 Deliverables:
 
 - install scripts
 - service files
-- backup/restore
-- profile test matrix
-- security review
+- configuration examples
+- backup/restore docs
+- hardware fixture docs
 - threat model
-- model/provider benchmark suite
-- documentation for supported hardware fixtures
+- support matrix
+- release checklist
 
 Exit criteria:
 
-- BoardClaw can be installed by a normal technical user
-- board support status is honest and repeatable
+- clean install works on reference boards
+- user can disable all write tools
+- support status is machine-readable
+- release process blocks unsupported claims
+
+Benchmark:
+
+- `benchmarks/expected/phase-09-release-hardening.json`

@@ -6,12 +6,12 @@ updating board profiles.
 
 ## Models and Providers
 
-- Google Gemma 4 announcement: https://blog.google/innovation-and-ai/technology/developers-tools/gemma-4/
-- Google DeepMind Gemma 4 model page: https://deepmind.google/models/gemma/gemma-4/
-- Google Developers Blog, Gemma 4 at the edge: https://developers.googleblog.com/bring-state-of-the-art-agentic-skills-to-the-edge-with-gemma-4/
+- Google Gemma model family: https://ai.google.dev/gemma
 - Ollama OpenAI compatibility: https://docs.ollama.com/api/openai-compatibility
 - Ollama documentation: https://docs.ollama.com/
-- Ollama Gemma 4 library page: https://www.ollama.com/library/gemma4
+- Ollama model library: https://www.ollama.com/library
+- llama.cpp server: https://github.com/ggml-org/llama.cpp/tree/master/tools/server
+- llama.cpp function calling: https://github.com/ggml-org/llama.cpp/blob/master/docs/function-calling.md
 - Meta Llama 3.2 edge/mobile announcement: https://ai.meta.com/blog/llama-3-2-connect-2024-vision-edge-mobile-devices/
 - Microsoft Phi models: https://azure.microsoft.com/en-us/products/phi/
 - Qwen3 technical report: https://arxiv.org/abs/2505.09388
@@ -31,7 +31,7 @@ updating board profiles.
 
 ## RK3588 Boards
 
-- Orange Pi 5 Plus product page: https://www.orangepi.org/html/hardWare/computerAndMicrocontrollers/details/Orange-Pi-5-plus-32GB.html
+- Orange Pi 5 Plus product page: https://www.orangepi.org/html/hardWare/computerAndMicrocontrollers/details/Orange-Pi-5-plus.html
 - Orange Pi 5 Plus wiki: https://www.orangepi.org/orangepiwiki/index.php/Orange_Pi_5_Plus
 - Radxa ROCK 5B/5B+ docs: https://docs.radxa.com/en/rock5/rock5b/getting-started/introduction
 - Radxa ROCK 5B+ product page: https://radxa.com/products/rock5/5bp/
@@ -54,4 +54,3 @@ updating board profiles.
 ## Local References
 
 - PicoClaw README: ../../picoclaw/README.md
-- Uniclaw README: ../../uniclaw/README.md

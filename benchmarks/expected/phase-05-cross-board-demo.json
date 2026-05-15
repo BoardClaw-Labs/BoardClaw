@@ -1,0 +1,36 @@
+{
+  "id": "phase-05-cross-board-demo",
+  "phase": "Phase 05: Cross-Board Demo",
+  "status": "planned",
+  "summary": "Raspberry Pi 5 publishes IoT state, Orange Pi 5 Plus coordinates smart-home automation, and Jetson Orin Nano handles robotics/perception through one BoardClaw core.",
+  "metrics": [
+    {
+      "name": "automation.shared_schema_success",
+      "operator": "eq",
+      "expected": 1,
+      "unit": "bool",
+      "reason": "One automation format must work across the reference profiles."
+    },
+    {
+      "name": "routing.incompatible_tool_hidden_rate",
+      "operator": "eq",
+      "expected": 1.0,
+      "unit": "ratio",
+      "reason": "Board-specific unsupported tools must not be exposed to the model."
+    },
+    {
+      "name": "automation.rule_determinism_rate",
+      "operator": "eq",
+      "expected": 1.0,
+      "unit": "ratio",
+      "reason": "The same rule input must produce the same non-LLM action decision."
+    },
+    {
+      "name": "camera.capture_timeout_enforced",
+      "operator": "eq",
+      "expected": 1,
+      "unit": "bool",
+      "reason": "Camera tools must fail clearly instead of hanging automations."
+    }
+  ]
+}
