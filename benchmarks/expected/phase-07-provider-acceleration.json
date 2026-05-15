@@ -1,0 +1,36 @@
+{
+  "id": "phase-07-provider-acceleration",
+  "phase": "Phase 07: Provider Acceleration And Model Telemetry",
+  "status": "planned",
+  "summary": "Acceleration routes are optional, measured, visible, and safely fall back to CPU/local routes.",
+  "metrics": [
+    {
+      "name": "provider.capability_report_success",
+      "operator": "eq",
+      "expected": 1,
+      "unit": "bool",
+      "reason": "The router must know what each provider can actually do."
+    },
+    {
+      "name": "provider.cpu_fallback_success",
+      "operator": "eq",
+      "expected": 1,
+      "unit": "bool",
+      "reason": "Provider failure must degrade safely."
+    },
+    {
+      "name": "telemetry.model_route_recorded_rate",
+      "operator": "eq",
+      "expected": 1.0,
+      "unit": "ratio",
+      "reason": "Users must be able to see which model route handled a task."
+    },
+    {
+      "name": "provider.unbenchmarked_acceleration_default_count",
+      "operator": "eq",
+      "expected": 0,
+      "unit": "count",
+      "reason": "Acceleration must not become default without benchmark proof."
+    }
+  ]
+}

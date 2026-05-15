@@ -3,42 +3,61 @@
 BoardClaw is technically possible.
 
 The successful version is not "one model runtime that runs perfectly on every
-board." The successful version is a common agent and safety core with
-board-specific profiles for inference, hardware access, and operating limits.
+board." The successful version is a common agent, routing, tool, memory, and
+safety core with board-specific profiles for inference, hardware access, and
+operating limits.
 
 ## Feasibility Verdict
 
 | Area | Verdict | Reason |
 |---|---|---|
-| Raspberry Pi first product | High | Strong OS, GPIO, camera, community, Ollama, and Hailo-Ollama paths |
+| Three-board first version | High | Raspberry Pi 5, Orange Pi 5 Plus, and Jetson Orin Nano each prove a distinct domain |
 | Common agent core | High | Channels, sessions, routing, providers, and tools are normal software architecture |
 | Local small-model operation | High | Small quantized models can handle command parsing, summaries, and simple tool use |
-| Local large-model operation on every board | Low | RAM, accelerator support, and thermal limits differ too much |
-| Multi-board hardware tools | Medium | Linux exposes GPIO/I2C/SPI/UART, but pin maps and permissions differ |
+| Safe typed hardware tools | High with care | Linux exposes GPIO/I2C/SPI/UART, but permissions and pin maps must be profile-specific |
+| Smart-home integration | High | MQTT and Home Assistant APIs are mature and testable |
+| Robotics orchestration | Medium to High | Good as a planner/explainer with ROS 2 boundary; unsafe as a hard real-time controller |
+| Local large-model operation on every board | Low | RAM, accelerator support, and thermals differ too much |
 | Multi-board NPU acceleration | Medium to Low | Vendor stacks are fragmented and model conversion is often the hard part |
-| Robotics support | Medium | Good as an orchestrator; unsafe as a hard real-time controller |
-| SecuClaw with Uniclaw and mobile approval | Medium to High | Integration is clean if BoardClaw emits proposal/tool metadata from the start |
-| Rust core implementation | High | Rust fits the daemon, hardware, policy, and Uniclaw integration requirements |
-| One-language-only product | Medium | The core can be Rust, but UI and some vendor SDK adapters may need TypeScript/Python |
+| Later mobile approval and receipts | Medium to High | Clean if BoardClaw emits proposal/tool metadata from the start |
+| Rust core implementation | High | Rust fits daemon, hardware, policy, and safety boundaries |
+| One-language-only product | Medium | Core can be Rust, but UI and some vendor SDK bridges may need TypeScript/Python |
+
+## Is The Three-Board Focus Right?
+
+Yes.
+
+It makes BoardClaw stronger because:
+
+- Raspberry Pi 5 validates normal IoT hardware control.
+- Orange Pi 5 Plus validates smart-home gateway behavior and RK3588 reuse.
+- Jetson Orin Nano validates robotics and vision boundaries.
+- The three boards force the provider layer to be real from the beginning.
+- The project avoids pretending one board or one model path is universal.
+
+It would make BoardClaw weaker only if the implementation becomes three
+separate apps. The solution is to build shared runtime interfaces first and make
+each board a profile.
 
 ## What Is Straightforward
 
 These parts are conventional and should be built early:
 
 - daemon service
-- CLI and local web API
+- CLI and local HTTP API
 - local Ollama provider
 - OpenAI-compatible provider interface
 - SQLite sessions and device graph
-- tool registry with JSON schemas
+- tool registry with schemas
 - read-only hardware tools
 - MQTT/Home Assistant integration
 - board profile files
 - event logs
+- simulation backend for CI
 
 ## What Is Possible But Needs Care
 
-These are feasible, but they need careful engineering and testing:
+These are feasible, but need careful engineering and testing:
 
 - GPIO/I2C/SPI/UART writes
 - camera integration across boards
@@ -46,11 +65,11 @@ These are feasible, but they need careful engineering and testing:
 - per-board pin maps
 - safe shell/file tools
 - local model routing
-- Hailo-Ollama provider
-- RK3588 NPU provider
-- Jetson TensorRT provider
-- mobile approvals
-- Uniclaw receipt integration
+- Raspberry Pi accelerator route
+- RK3588 NPU route
+- Jetson accelerated route
+- later mobile/PWA approval
+- durable receipt verification
 
 ## What Is Hard
 
@@ -62,20 +81,23 @@ These should not be promised in the first release:
 - arbitrary model conversion to every NPU
 - guaranteed real-time behavior on Linux SBCs
 - unattended destructive repair actions
+- perfect offline vision-language performance on every board
 
 ## Product Strategy
 
 The right path:
 
 ```text
-1. Build RasClaw as the first BoardClaw profile.
-2. Implement the core in Rust.
-3. Keep provider, tool, memory, policy, and board-profile boundaries generic.
-4. Select models by board/task/provider instead of hardcoding Gemma.
-5. Add RK3588 family after Raspberry Pi is stable.
-6. Add Jetson for robotics/VLM.
-7. Add lower-power boards as satellites or control nodes, not LLM-heavy hosts.
-8. Add Uniclaw as an optional proof sidecar once the tool event model is stable.
+0. Define core contracts: Rust core, profile schema, provider interface,
+   benchmark format, and safety policy vocabulary.
+1. Complete Raspberry Pi 5 for IoT.
+2. Complete Orange Pi 5 Plus for smart-home gateway workflows.
+3. Complete Jetson Orin Nano for robotics and vision workflows.
+4. Harden the shared safety layer across all three profiles.
+5. Build the cross-board demo.
+6. Add more board profiles only after the three-board triangle is stable.
+7. Use benchmarks to decide acceleration and model defaults.
+8. Add approval, receipt, and mobile verification after the tool metadata is stable.
 ```
 
 ## Board Roles
@@ -84,9 +106,10 @@ Not every board should do the same job.
 
 | Role | Best boards |
 |---|---|
-| First complete product | Raspberry Pi 5 / CM5 |
-| Robotics and VLM | Jetson Orin Nano |
-| ARM gateway with NPU experiments | Orange Pi 5 Plus, Radxa ROCK 5B+, Banana Pi BPI-M7 |
+| IoT reference | Raspberry Pi 5 / CM5 |
+| Smart-home reference | Orange Pi 5 Plus |
+| Robotics and VLM reference | Jetson Orin Nano |
+| RK3588 expansion | Radxa ROCK 5B+, Banana Pi BPI-M7 |
 | Local server and storage gateway | ODROID-H3+ |
 | Embedded control and vision | BeagleBone AI-64 |
 | Low-cost IoT satellite | Libre Computer Le Potato |
@@ -121,40 +144,31 @@ BoardClaw should make the model route visible:
 local-small -> local-accelerated -> LAN model -> cloud fallback
 ```
 
-Only `local-small` should be mandatory.
-
-Recommended first model policy:
-
-- Raspberry Pi MVP: start with a 1B-4B instruct model through Ollama.
-- Raspberry Pi AI HAT+ 2: add Hailo-supported models through Hailo-Ollama.
-- Jetson: prefer models that work well with NVIDIA's current acceleration path.
-- RK3588: start CPU/Ollama, then add RKLLM/RKNN models only after conversion is
-  proven.
-- Low-end boards: use tiny local command models or a LAN model hub.
+Only `local-small` should be mandatory for the first version.
 
 ## Minimum Viable Technical Slice
 
-The smallest useful BoardClaw is:
+The smallest useful BoardClaw implementation is:
 
 ```text
-Raspberry Pi 5
-  + boardclawd
-  + Ollama local model
-  + CLI/local web channel
+Rust daemon
+  + simulation channel/provider/tool stack
+  + policy gate
   + SQLite memory
-  + board profile detection
+  + Raspberry Pi 5 profile
+  + local Ollama provider
   + read-only GPIO/I2C/UART/camera tools
   + approval-gated GPIO write
   + MQTT publish/subscribe
 ```
 
 This slice proves the architecture without depending on NPU support, mobile
-approval, ROS 2, or Uniclaw.
+approval, or ROS 2. Orange Pi and Jetson then prove the architecture is truly
+multi-board.
 
 ## Decision
 
 Proceed.
 
-Build the first version as RasClaw on Raspberry Pi, but name and structure every
-internal subsystem as BoardClaw. That avoids the most common failure: building a
-Pi-specific prototype that later needs to be rewritten to support real boards.
+Build BoardClaw as a shared Rust core with three deep reference profiles before
+expanding the board matrix.

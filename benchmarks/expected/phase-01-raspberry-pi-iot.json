@@ -1,8 +1,8 @@
 {
-  "id": "phase-01-rasclaw-mvp",
-  "phase": "Phase 01: RasClaw MVP",
+  "id": "phase-01-raspberry-pi-iot",
+  "phase": "Phase 01: Raspberry Pi 5 IoT Profile",
   "status": "planned",
-  "summary": "Raspberry Pi local chat, board detection, read-only hardware tools, and SQLite memory.",
+  "summary": "Raspberry Pi 5 local model route, board detection, read-only hardware tools, MQTT, SQLite memory, and approval-gated GPIO write.",
   "metrics": [
     {
       "name": "daemon.startup_ms",
@@ -19,14 +19,14 @@
       "reason": "BoardClaw should leave RAM for models and board workloads."
     },
     {
-      "name": "provider.ollama_healthcheck_ms",
+      "name": "provider.local_healthcheck_ms",
       "operator": "lte",
       "expected": 2000,
       "unit": "ms",
       "reason": "Provider health must be fast enough for route decisions."
     },
     {
-      "name": "board.detect_success",
+      "name": "board.raspberry_pi_detect_success",
       "operator": "eq",
       "expected": 1,
       "unit": "bool",
@@ -40,11 +40,25 @@
       "reason": "Read-only tools are the foundation for safe local inspection."
     },
     {
+      "name": "mqtt.loopback_p95_ms",
+      "operator": "lte",
+      "expected": 500,
+      "unit": "ms",
+      "reason": "Local IoT event loops should be interactive."
+    },
+    {
       "name": "memory.sqlite_roundtrip_ms",
       "operator": "lte",
       "expected": 50,
       "unit": "ms",
       "reason": "Session and device graph memory must not dominate user latency."
+    },
+    {
+      "name": "policy.gpio_write_without_approval_denial_rate",
+      "operator": "eq",
+      "expected": 1.0,
+      "unit": "ratio",
+      "reason": "A Raspberry Pi relay demo must not execute without approval."
     }
   ]
 }

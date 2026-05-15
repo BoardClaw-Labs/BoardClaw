@@ -1,215 +1,248 @@
 # BoardClaw
 
-BoardClaw is a local-first AI agent runtime for single-board computers, edge
-gateways, robots, IoT labs, and embedded engineering workbenches.
-
-The final goal is not only "RasClaw on Raspberry Pi". RasClaw is the first
-board profile inside BoardClaw. The internal design must support many boards
-from day one while shipping the Raspberry Pi path first.
+BoardClaw is a local-first AI control runtime for edge boards, IoT gateways,
+smart automation hubs, robots, and embedded engineering benches.
 
 ```text
 BoardClaw
-  = board profile + local model provider + message channels
-  + hardware tools + memory/routing + safety/proof layer
+  = board profiles
+  + local model routing
+  + message channels
+  + typed hardware/control tools
+  + memory and event history
+  + safety policy, approval, and audit receipts
 ```
 
-## Mission
+The goal is not a chat demo on one board. The goal is a board-aware control
+platform that can run private local models, understand device context, route
+actions through narrow tools, and keep risky physical operations visible,
+approved, and recoverable.
 
-BoardClaw turns a Linux-capable board into a private local automation agent
-that can understand operator intent, inspect device state, call typed tools,
-and safely coordinate IoT, smart automation, robotics, and embedded workflows.
+## First Version
 
-The model proposes actions. BoardClaw validates and executes those actions
-through narrow tools. High-risk actions can later be anchored through Uniclaw
-receipts and mobile verification.
+The first complete BoardClaw version focuses on three reference boards:
 
-## First Target
+| Reference board | Primary role | Why it is first | First local model route |
+|---|---|---|---|
+| Raspberry Pi 5 | IoT reference | strongest maker/IoT ecosystem, 40-pin GPIO, MIPI camera/display, PCIe, long production life | Ollama or llama.cpp with a 1B-4B instruct model |
+| Orange Pi 5 Plus | Smart Home reference | RK3588, dual 2.5G Ethernet, high RAM options, gateway-style I/O, AIoT fit | Ollama CPU first, RKLLM/RKNN later only after benchmarks prove it |
+| NVIDIA Jetson Orin Nano | Robotics reference | AI-powered robots, cameras, vision systems, CUDA/TensorRT ecosystem | NVIDIA provider path with Ollama/llama.cpp fallback |
 
-The first completed profile is:
+This is the right narrowing. It makes BoardClaw stronger because each first
+board proves a different product surface:
+
+- Raspberry Pi 5 proves sensors, GPIO, MQTT, and normal IoT control.
+- Orange Pi 5 Plus proves a more powerful smart-home gateway with RK3588 family
+  reuse for later Radxa and Banana Pi profiles.
+- Jetson Orin Nano proves robotics, vision, ROS 2 boundaries, and accelerated
+  local inference.
+
+Trying to finish every listed board at once would make BoardClaw weaker. The
+three-board plan keeps the architecture broad while making validation deep.
+
+## Roadmap
+
+| Phase | Goal |
+|---|---|
+| 0 | Core contracts: Rust core, profile schema, provider interface, benchmark format, safety policy vocabulary |
+| 1 | Raspberry Pi 5 IoT profile |
+| 2 | Orange Pi 5 Plus Smart Home profile |
+| 3 | Jetson Orin Nano Robotics profile |
+| 4 | Shared safety layer |
+| 5 | Cross-board demo |
+| 6 | More board profiles |
+| 7 | Provider acceleration and model telemetry |
+| 8 | Approval and receipts |
+| 9 | Release hardening |
+
+## Final Version
+
+The final BoardClaw is a multi-board local AI control system with:
+
+- board profiles for Raspberry Pi, RK3588 boards, Jetson, x86 gateways,
+  BeagleBone-class embedded boards, and low-cost automation satellites
+- swappable model providers for Ollama, llama.cpp, vendor acceleration stacks,
+  OpenVINO, and explicitly enabled LAN/cloud fallback
+- channels for CLI, local web, HTTP API, MQTT, Home Assistant, Telegram/Matrix,
+  ROS 2, and mobile approval
+- typed tools for GPIO, PWM, I2C, SPI, UART, CAN, camera, MQTT, Home Assistant,
+  ROS 2, safe files, and safe shell commands
+- local memory for sessions, device inventory, automation history, safety
+  incidents, and model/tool traces
+- policy gates, dry-run, timeouts, least-privilege hardware helpers, audit
+  events, signed receipt hooks, and mobile verification for high-risk actions
+
+## Completed Runtime Flow
 
 ```text
-RasClaw
-  = Raspberry Pi 5 / Compute Module 5 profile
-  + suitable local small model through Ollama, llama.cpp, or Hailo-Ollama
-  + GPIO/I2C/SPI/UART/camera/MQTT/Home Assistant tools
-  + SQLite memory and local web/mobile control
+1. Channel receives a message or event.
+   Local web UI, CLI, MQTT, Home Assistant, ROS 2, or local HTTP API.
+
+2. BoardClaw normalizes the event.
+   It records principal, channel, board id, device context, and request type.
+
+3. Session and memory are loaded.
+   SQLite provides device graph, known automations, user preferences, and recent
+   safety history.
+
+4. Board router selects the active profile.
+   The profile declares available buses, cameras, accelerators, providers,
+   pin maps, thermal limits, and default tool visibility.
+
+5. Model router selects the provider.
+   Local-small first, local-accelerated when proven, LAN/cloud fallback only
+   when explicitly enabled.
+
+6. Tool router exposes only allowed tools.
+   Read-only tools are visible first. Write tools require profile support,
+   policy checks, and sometimes approval.
+
+7. Model proposes an answer or typed tool call.
+   The model does not get raw shell, raw GPIO authority, or hidden secrets.
+
+8. Policy engine validates the proposal.
+   It checks risk, board profile, channel, budget, target device, dry-run mode,
+   approval state, and timeout limits.
+
+9. Hardware/control layer executes the tool.
+   A narrow helper process touches GPIO, buses, cameras, ROS 2, or local APIs.
+
+10. Audit event is written.
+    Every tool call records input hash, output hash, risk, approval, result,
+    model route, board id, and redaction report. Later versions can attach
+    stronger receipt verification to the same event data.
+
+11. Channel receives the final response.
+    The user sees what happened, what was denied, what needs approval, and what
+    to do next.
 ```
 
-Raspberry Pi is the best first target because it has the strongest community,
-stable documentation, accessible GPIO and camera support, and a clear local AI
-path through CPU inference, Ollama, and the Raspberry Pi AI HAT+ 2.
-
-## Board Roadmap
-
-BoardClaw should grow by board profiles, not by forks.
-
-| Phase | Profile | Role |
-|---|---|---|
-| 1 | Raspberry Pi 5 / CM5 | First complete product path, RasClaw |
-| 2 | Orange Pi 5 Plus | RK3588 gateway and NPU experimentation |
-| 3 | NVIDIA Jetson Orin Nano | Robotics, VLM, CUDA/TensorRT acceleration |
-| 4 | ODROID-H3+ | x86 edge gateway, NAS, lab server, CPU inference |
-| 5 | Radxa ROCK 5B+ | RK3588 board with strong RAM/storage options |
-| 6 | BeagleBone AI-64 | Embedded control, vision, industrial I/O |
-| 7 | Libre Computer Le Potato | Low-cost IoT gateway, light automation |
-| 8 | ASUS Tinker Board 2S | Industrial IoT and FOTA-oriented profile |
-| 9 | Banana Pi BPI-M7 | Compact RK3588 automation/robotics node |
-
-ODROID-H3+ appears twice in the planning list; this README keeps one profile.
-
-## Core Architecture
+## Big Picture
 
 ```text
 channels
-  web UI, mobile, CLI, Telegram, MQTT, ROS 2, Home Assistant
+  CLI | web | HTTP API | MQTT | Home Assistant | ROS 2
         |
         v
 boardclawd
-  session memory, routing, policy, model selection, audit events
+  session memory
+  event normalization
+  board router
+  model router
+  tool visibility
+  policy and approval state
+  audit/receipt metadata
         |
-        +--> provider adapter
-        |      ollama, llama.cpp, Hailo-Ollama, RKLLM/RKNN, TensorRT-LLM,
-        |      OpenVINO, remote fallback
+        +--> providers
+        |      Ollama | llama.cpp | Hailo route | RK route | NVIDIA route
+        |      OpenVINO | explicit LAN/cloud fallback
         |
-        +--> hardware tool daemon
-        |      GPIO, PWM, I2C, SPI, UART, CAN, camera, USB, sensors,
-        |      relays, motors, shell-safe, files-safe
+        +--> hardware/control helper
+        |      GPIO | PWM | I2C | SPI | UART | CAN | camera | files | shell-safe
+        |      MQTT | Home Assistant | ROS 2
         |
-        +--> safety/proof sidecar
-               Uniclaw receipts, approvals, budgets, mobile verification
+        +--> local storage
+               SQLite | append-only events | benchmark results | device graph
 ```
 
-The most important design rule:
+The most important rule: BoardClaw exposes one agent/control API, but each board
+has its own capability profile and provider route.
 
-> BoardClaw exposes one agent/control API, but each board has its own provider
-> and hardware profile.
+## Model Strategy
 
-Do not pretend Jetson, Raspberry Pi, RK3588 boards, BeagleBone, and x86 ODROID
-share one perfect inference stack. They do not. They can share the BoardClaw
-agent core.
+BoardClaw is model-agnostic. Gemma-class models are good candidates, but the
+default should always be chosen by measured quality, latency, memory use,
+license, local availability, and tool-calling behavior.
 
-## Local Model Strategy
+Recommended defaults:
 
-BoardClaw is model-agnostic. Gemma-class models are a good first family, but
-the project should use whichever local model is best for the board, task,
-runtime, license, and memory budget.
+- Raspberry Pi 5: 1B-4B instruct model through Ollama or llama.cpp.
+- Orange Pi 5 Plus: 2B-7B quantized model through Ollama first; RK acceleration
+  becomes experimental only after conversion and benchmark success.
+- Jetson Orin Nano: small/medium local text model plus vision pipeline or local
+  VLM through NVIDIA-friendly runtimes.
+- Low-cost boards later: tiny local command model or LAN model hub, with honest
+  labeling as satellites rather than heavy local LLM hosts.
 
-Use Ollama for the first Raspberry Pi MVP because it is simple, local,
-scriptable, and exposes OpenAI-compatible endpoints. Keep the provider layer
-generic so the runtime can later use:
+Local-first is the default. Remote fallback is a feature flag, not a hidden
+dependency.
 
-- `ollama` for the easiest local model path
-- `llama.cpp` for direct GGUF control and lower-level tuning
-- `hailo-ollama` for Raspberry Pi AI HAT+ 2
-- `tensorrt-llm` or NVIDIA containers for Jetson
-- `rkllm` / `rknn` for RK3588-family boards
-- `openvino` for x86/Intel-class gateways
-- cloud or LAN fallback for tasks too large for the board
+## Channel Strategy
 
-Default policy: local model first, remote fallback only when explicitly enabled.
+BoardClaw should support channels by normalizing every input into one internal
+event shape.
 
-Recommended model classes:
+First version channels:
 
-- 1B-4B local instruct models for Raspberry Pi, low-power RK3588 boards, and
-  IoT control.
-- 4B-9B local models for Jetson, RK3588 boards with enough RAM, and ODROID/x86.
-- Vision-language models for camera-heavy Jetson and Raspberry Pi AI HAT+ 2
-  profiles when the provider supports them.
-- Larger LAN/cloud models only as optional fallback for complex reasoning.
+| Channel | Used by | Purpose |
+|---|---|---|
+| Local Web UI | Human | dashboard, approvals, board status |
+| CLI | Developer/admin | setup, diagnostics, testing |
+| MQTT | IoT | sensor events, device messages |
+| Home Assistant | Smart Home | state query, service call proposal |
+| ROS 2 bridge | Robotics | bounded robot command proposal |
+| Local HTTP API | Integrations | stable internal/external API |
+
+Later channels:
+
+- Telegram or Matrix for operator messages
+- mobile/PWA approval for high-risk actions
+
+Channels do not execute tools directly. They create requests. BoardClaw routes,
+checks, executes, logs, and replies.
 
 ## Implementation Language
 
-The recommended core language is **Rust**.
+The trusted core should be written in **Rust**.
 
-Rust is the best fit for the final BoardClaw goal because BoardClaw is a
-hardware-adjacent, safety-sensitive daemon that needs typed tool schemas,
-least-privilege process boundaries, cross-platform Linux support, low memory
-overhead, strong concurrency, and future Uniclaw integration. Uniclaw is already
-Rust, so a Rust core can embed or sidecar the proof layer cleanly.
+Rust is the best fit because BoardClaw is hardware-adjacent, long-running,
+resource-sensitive, and safety-critical. The core needs typed tool schemas,
+least-privilege process boundaries, predictable memory use, strong async
+networking, and cross-platform Linux support.
 
 Recommended split:
 
-- **Rust**: `boardclawd`, hardware daemon, provider adapters, tool registry,
-  policy, memory, routing, Uniclaw adapter.
-- **TypeScript**: web dashboard and optional mobile-facing UI.
-- **Python**: optional board/vendor adapters only when a hardware SDK is
-  Python-first. Keep Python behind a process boundary.
-- **Go**: acceptable for quick prototypes and PicoClaw-style experiments, but
-  not the preferred final core for BoardClaw's safety/proof-heavy design.
+- Rust: daemon, hardware helper, provider interface, policy, tool registry,
+  routing, memory, event log, local HTTP API
+- TypeScript: web dashboard and mobile/PWA approval surface
+- Python: narrow vendor SDK bridges only when a hardware or AI SDK requires it
 
 ## What BoardClaw Is For
 
 - IoT gateways that speak MQTT, Modbus, Zigbee bridges, BLE bridges, and local
-  HTTP APIs.
-- Smart automation where the agent can explain, schedule, verify, and trigger
-  actions across sensors, relays, cameras, and Home Assistant.
-- Robotics orchestration where the LLM plans and explains, while real-time motor
-  control stays in ROS 2, a microcontroller, or a dedicated safety controller.
-- Embedded engineering where the agent helps inspect buses, flash firmware,
-  read logs, capture camera frames, and document hardware state.
-- Offline-first private automation where network loss should degrade capability,
-  not stop the system.
+  HTTP APIs
+- smart automation that can inspect state, explain actions, call Home Assistant
+  services, and require approval for risky changes
+- robotics orchestration where BoardClaw plans and explains while ROS 2,
+  microcontrollers, watchdogs, and safety controllers own real-time motion
+- embedded engineering workflows such as bus scans, serial monitoring, camera
+  captures, wiring reports, firmware proposals, and lab automation
+- offline-first private automation where network loss reduces capability but
+  does not stop local control
 
 ## What BoardClaw Is Not
 
-- Not a hard real-time motor controller.
-- Not a universal NPU abstraction that magically makes every model fast.
-- Not an unattended root shell for an LLM.
-- Not a cloud-only assistant.
-- Not a replacement for limit switches, watchdogs, fuses, emergency stops, or
-  real electrical safety.
+- not a hard real-time motor controller
+- not a universal NPU abstraction that makes every model fast
+- not an unattended root shell for an LLM
+- not a cloud-only assistant
+- not a replacement for limit switches, watchdogs, fuses, emergency stops, or
+  physical safety design
 
-## Safety Model
+## PicoClaw Lessons
 
-BoardClaw must be useful because it can control real things. It must be careful
-for the same reason.
+PicoClaw already proved useful patterns that BoardClaw should reuse at a larger
+hardware-control scale:
 
-High-risk operations should be behind typed tools, policy, budgets, and optional
-approval. Examples:
+- keep channels, providers, tools, sessions, and runtime events as first-class
+  modules
+- use explicit routing instead of scattering provider decisions through code
+- keep tool allowlists and sensitive-data filtering near the execution boundary
+- make event logs useful enough to debug real devices
+- test routing, session, provider, and tool behavior before adding integrations
 
-- GPIO writes that energize relays
-- PWM outputs for motors/servos
-- I2C/SPI/UART writes
-- firmware flashing
-- shell execution
-- file writes outside an allowed workspace
-- network calls to private control APIs
-- robot movement, unlocking doors, pumps, heaters, charging circuits
-
-For robotics, the LLM must not sit in the hard real-time loop. Use this split:
-
-```text
-LLM: understand intent, plan, ask questions, explain
-BoardClaw: validate and translate intent into typed actions
-Controller: run motors, PID, interlocks, emergency stop, watchdog
-```
-
-## Uniclaw / SecuClaw Path
-
-Uniclaw is not required for the first BoardClaw MVP, but BoardClaw should be
-designed so Uniclaw can plug in cleanly when its proof layer is ready.
-
-Future SecuClaw profile:
-
-```text
-SecuClaw = BoardClaw + Uniclaw + mobile verification
-```
-
-Flow:
-
-```text
-model proposes action
-  -> BoardClaw creates a typed proposal
-  -> Uniclaw checks constitution and budget
-  -> risky action becomes pending
-  -> phone receives approval request
-  -> user approves with passkey/biometric
-  -> BoardClaw executes the tool
-  -> Uniclaw records execution receipt
-```
-
-This gives BoardClaw a future path for auditability, shared trust, and safe
-remote approvals without blocking the Raspberry Pi-first build.
+BoardClaw applies those lessons to Linux boards, local models, physical safety,
+and multi-board profiles.
 
 ## Documents
 
@@ -220,32 +253,18 @@ remote approvals without blocking the Raspberry Pi-first build.
 - [Technical Possibility](docs/technical-possibility.md)
 - [Model and Language Strategy](docs/model-and-language.md)
 - [Board Profiles](docs/board-profiles.md)
-- [Raspberry Pi First Plan](docs/raspberry-pi-first.md)
+- [First Version](docs/first-version.md)
 - [Use Cases](docs/use-cases.md)
 - [Risks and Mitigations](docs/risks.md)
-- [Uniclaw and SecuClaw Integration](docs/uniclaw-secuclaw.md)
+- [Approval and Receipts](docs/receipt-and-mobile-approval.md)
 - [Roadmap](docs/roadmap.md)
 - [References](docs/references.md)
 
-## Success Criteria
-
-BoardClaw is successful when:
-
-- Raspberry Pi can run a local model and safely control real GPIO/I2C/SPI/UART
-  devices through typed tools.
-- A user can automate an IoT task without giving the model arbitrary shell or
-  root access.
-- The same agent core can boot on at least three board families with different
-  provider backends.
-- Robotics demos use real safety boundaries instead of prompt-only safety.
-- Uniclaw can be added as a sidecar for approvals and receipts without rewriting
-  the BoardClaw tool system.
-
 ## Status
 
-Planning and architecture stage.
+Planning and bootstrap implementation.
 
-The repository now has a CI-first Rust workspace, benchmark expectation files,
-and an initial `boardclaw-core` crate for project contracts. The first feature
-milestone is Raspberry Pi support with local Ollama provider, SQLite memory,
-web/CLI channel, and a minimal hardware tool daemon.
+The repository has a CI-first Rust workspace, benchmark expectation files, and
+an initial `boardclaw-core` crate for project contracts. The next work is Phase
+01: Raspberry Pi 5 IoT profile, while keeping the shared core, policy, provider,
+tool, and event contracts generic for all three reference profiles.

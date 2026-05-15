@@ -4,23 +4,31 @@ BoardClaw has one agent runtime and many board profiles.
 
 ```text
 channels
-  web, mobile, CLI, Telegram, MQTT, Home Assistant, ROS 2
+  CLI | web | HTTP API | MQTT | Home Assistant | ROS 2
+        |
+        v
+event normalizer
+  principal, channel, board id, request kind, device context, trace id
         |
         v
 boardclawd
-  identity, sessions, memory, routing, policy, orchestration
+  sessions, memory, routing, policy, approval state, event log
         |
-        +--> provider layer
-        |      local or remote model backends
+        +--> model providers
+        |      Ollama | llama.cpp | Hailo route | RK route | NVIDIA route
+        |      OpenVINO | explicit LAN/cloud fallback
         |
-        +--> tool layer
-        |      hardware, automation, files, shell-safe, network-safe
+        +--> tool registry
+        |      typed schemas, risk levels, compatibility, dry-run, timeouts
         |
         +--> board profile layer
-        |      detection, pin maps, accelerators, cameras, thermal limits
+        |      detection, pin maps, accelerators, cameras, OS notes, limits
         |
-        +--> proof layer
-               optional Uniclaw sidecar for approvals and receipts
+        +--> hardware/control helper
+        |      least-privilege GPIO, buses, camera, shell-safe, files, ROS 2
+        |
+        +--> audit and receipt metadata
+               proposal, approval, denial, execution, redaction, hashes
 ```
 
 ## Runtime Components
@@ -29,67 +37,78 @@ boardclawd
 
 The long-running daemon owns:
 
+- channel ingestion
 - session state
-- message routing
+- device graph and memory
+- board detection
 - model selection
-- tool registration
+- tool visibility
 - policy enforcement
-- memory writes
+- approval state
 - event/audit stream
-- local web API
+- local HTTP API
 
-It should be implemented in Rust and run as a normal service with minimal
-privileges. Hardware access can be delegated to a separate Rust helper daemon or
-Linux groups instead of running the entire agent as root.
+It should run as a normal service with minimal privileges. Hardware access
+should be delegated to a narrow helper process or Linux groups instead of
+running the entire agent as root.
 
 ### Channels
 
-Channels convert user or system events into normalized messages.
+Channels convert user or system input into normalized BoardClaw events.
 
-Initial channels:
+First channels:
 
-- CLI for development
-- local web UI
+- CLI for development and tests
 - local HTTP API
+- local web dashboard
 - MQTT for IoT events
+
+Reference-board channels:
+
+- Raspberry Pi 5: CLI, HTTP, MQTT, camera/tool events
+- Orange Pi 5 Plus: MQTT, Home Assistant, local web, storage/event history
+- Jetson Orin Nano: ROS 2, camera/VLM, CLI, local web
 
 Later channels:
 
-- Telegram or Matrix
-- Home Assistant integration
-- ROS 2 bridge
-- mobile app push/approval channel
+- Telegram or Matrix operator chat
+- mobile approval/PWA
+- additional automation platforms
+
+Channels never bypass policy. They create requests. BoardClaw decides what can
+run.
 
 ### Provider Layer
 
 BoardClaw talks to model backends through a provider interface:
 
 ```text
-Provider.Chat(messages, tools, model, options) -> response + tool_calls
+Provider.chat(messages, tools, model, options) -> response + tool_calls
+Provider.health() -> capabilities + latency + model availability
+Provider.telemetry() -> route, memory, timing, errors
 ```
 
 Provider adapters should include:
 
 - Ollama
 - llama.cpp server
-- Hailo-Ollama
-- RKLLM/RKNN bridge
-- NVIDIA/TensorRT-LLM bridge
-- OpenVINO bridge
-- OpenAI-compatible remote fallback
+- Hailo-oriented route for supported Raspberry Pi accelerators
+- RKLLM/RKNN bridge for RK3588 boards after CPU support is stable
+- NVIDIA/TensorRT-oriented route for Jetson
+- OpenVINO for x86/Intel experiments
+- OpenAI-compatible LAN/cloud fallback when explicitly enabled
 
-BoardClaw should not hardcode one model family. The provider layer should expose
-capabilities such as text, vision, audio, function/tool calling, context window,
-memory requirement, accelerator support, and license metadata. The router then
-chooses a suitable model for the board and task.
+The provider layer must expose capability data:
 
-The provider layer must support local-first routing:
+- text, vision, audio, tool/function calling
+- context window
+- memory requirement
+- accelerator requirement
+- license metadata
+- measured benchmark status
+- offline availability
 
-```text
-simple/control task -> local small model
-vision/robotics task -> board-specific VLM or vision pipeline
-large reasoning task -> optional LAN/cloud fallback
-```
+The router then chooses the smallest reliable model for the board and task.
 
 ### Tool Layer
 
@@ -106,9 +125,13 @@ Every tool needs:
 - timeout
 - dry-run behavior when possible
 - audit event
+- approval requirement
+- simulation behavior for CI
 
 Core tools:
 
+- `system.info`
+- `board.profile`
 - `gpio.read`
 - `gpio.write`
 - `pwm.set`
@@ -122,75 +145,75 @@ Core tools:
 - `camera.capture`
 - `mqtt.publish`
 - `home_assistant.call_service`
-- `ros2.publish`
+- `ros2.publish_bounded`
 - `shell.safe_exec`
 - `file.read_allowed`
 - `file.write_allowed`
 
 Dangerous tools must require policy approval by default.
 
-### Hardware Tool Daemon
+### Hardware/Control Helper
 
-For safety and portability, BoardClaw should split model orchestration from
-hardware control:
+BoardClaw should split model orchestration from device authority:
 
 ```text
-boardclawd      normal service, no broad root
-boardclaw-hwd   narrow hardware daemon, group or capability scoped
+boardclawd        normal user service, policy, routing, memory
+boardclaw-hwd     narrow hardware helper, scoped permissions
+vendor-adapter    optional process for Python-first SDKs
 ```
 
-This keeps the LLM-facing runtime away from raw device authority.
-
-The hardware daemon should also be Rust. Python SDKs can be wrapped by small
-adapter processes when a board vendor requires Python, but the trusted interface
-back to BoardClaw should stay narrow and typed.
+The trusted interface back to BoardClaw stays typed even when a vendor SDK
+requires a Python bridge.
 
 ### Board Profiles
 
-A board profile is data plus small adapters:
+A profile is mostly declarative:
 
 ```yaml
-id: raspberry_pi_5
-family: raspberry_pi
-arch: arm64
-preferred_os: raspberry_pi_os
+id: orange_pi_5_plus
+family: rk3588
+reference_role: smart_home
+arch: aarch64
 providers:
-  - ollama
-  - hailo_ollama
-buses:
+  preferred:
+    - ollama
+  experimental:
+    - rkllm
+    - rknn
+hardware:
   gpio: true
   i2c: true
   spi: true
   uart: true
-  can: adapter_required
-cameras:
-  - libcamera
-accelerators:
-  - cpu
-  - hailo_10h_optional
+  camera: board_specific
+safety:
+  default_mode: read_only
+  writes_require_approval: true
+  require_pinmap_confirmation: true
 limits:
-  require_active_cooling: true
-  conservative_pwm_default: true
+  thermal_monitoring: required
+  npu_claim_requires_benchmark: true
 ```
 
-Profiles should be declarative first. Code should only appear where a board has
-real API differences.
+Profiles should be data first. Code should appear only where a board has real
+API differences.
 
 ### Memory
 
-Initial memory should be boring:
+Initial memory should be boring and reliable:
 
-- SQLite for sessions, device graph, facts, and automations
-- JSONL or append-only event stream for debugging
-- summaries for long conversations
+- SQLite for sessions, device graph, facts, automations, approvals, and events
+- append-only JSONL event stream for debugging
+- short summaries for long sessions
 - optional vector index later
 
-Memory should separate:
+Memory must separate:
 
 - user preferences
 - board facts
 - device inventory
 - automation history
+- approval state
 - safety incidents
 - model/tool traces
 
@@ -198,66 +221,67 @@ Memory should separate:
 
 Routing answers three questions:
 
-1. Which agent/profile handles this?
+1. Which board profile owns this request?
 2. Which model/provider is appropriate?
 3. Which tools are visible to the model?
 
-Routing features:
+Routing rules:
 
 - local-first by default
 - model fallback only when explicitly enabled
-- read-only mode for unknown boards
-- high-risk tools hidden until the user enables them
-- robot motion tools hidden unless safety profile is configured
+- unknown boards start read-only
+- high-risk tools hidden until policy enables them
+- robotics motion tools hidden unless a safety profile is configured
+- provider acceleration must have benchmark proof before becoming default
 
-### Proof Layer
+### Approval And Receipt Layer
 
-The proof layer is optional in the first MVP but must fit the design.
+The first version can use local approval state and event logs. The final version
+should be able to attach stronger receipts without changing the tool system.
 
-BoardClaw should be able to send this to Uniclaw:
+Metadata required for every tool proposal:
 
-- action proposal
+- action id
+- tool name
+- target board
+- target device
+- input hash
 - requested capability
-- estimated resource charge
-- user/channel identity
-- tool input hash
-- tool output hash
-- secret-use names
+- risk level
+- channel
+- principal
+- model route
+- policy decision
+- approval status
+- output hash or error code
 - redaction report
 
-BoardClaw should never need to rewrite tools to add Uniclaw. The tool system
-should already produce the right events.
+This makes later mobile approval and independent receipt verification a clean
+extension instead of a rewrite.
 
-## Process Boundaries
-
-Recommended process layout:
+## First-Version Flow
 
 ```text
-boardclawd
-  orchestrates agent turns and providers
-
-boardclaw-hwd
-  controls hardware buses and exposes narrow local RPC
-
-uniclaw-host
-  optional receipt/approval sidecar
-
-provider process
-  ollama, llama.cpp, hailo-ollama, tensorrt server, rkllm bridge
+User/MQTT/ROS event
+  -> normalized BoardClaw event
+  -> load session and board profile
+  -> select local provider
+  -> expose allowed tools
+  -> model proposes answer/tool
+  -> policy validates
+  -> approval required or tool executes
+  -> event/receipt metadata written
+  -> response sent to channel
 ```
 
-This keeps failure domains clear.
+## Safety Boundary
 
-## Real-Time Boundary
-
-BoardClaw may plan robot actions, but it should not run the control loop.
+For robotics and physical control:
 
 ```text
-LLM / agent:       seconds, language, planning, uncertainty
-BoardClaw tools:   tens to hundreds of milliseconds, validated commands
-Controller:        microseconds to milliseconds, closed-loop control
-Hardware:          physical limits and interlocks
+LLM: understand intent, summarize state, propose bounded action
+BoardClaw: validate, route, log, request approval
+Controller: enforce timing, interlocks, watchdogs, emergency stop
 ```
 
-For robotics, BoardClaw should speak to ROS 2, a microcontroller, or a dedicated
-controller that owns real-time safety.
+The LLM must not own hard real-time loops.

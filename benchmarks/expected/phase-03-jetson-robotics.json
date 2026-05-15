@@ -1,6 +1,6 @@
 {
-  "id": "phase-06-jetson-robotics",
-  "phase": "Phase 06: Jetson Robotics Profile",
+  "id": "phase-03-jetson-robotics",
+  "phase": "Phase 03: Jetson Orin Nano Robotics Profile",
   "status": "planned",
   "summary": "Jetson robotics and VLM support without hard real-time LLM control.",
   "metrics": [
@@ -10,6 +10,13 @@
       "expected": 1,
       "unit": "bool",
       "reason": "Jetson must have a visible accelerated provider route."
+    },
+    {
+      "name": "vision.camera_route_visible",
+      "operator": "eq",
+      "expected": 1,
+      "unit": "bool",
+      "reason": "Robotics workflows need camera/VLM capability metadata."
     },
     {
       "name": "ros2.bounded_publish_success",

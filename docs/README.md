@@ -1,7 +1,7 @@
 # BoardClaw Docs
 
 This directory defines the product, architecture, board strategy, safety model,
-and roadmap for BoardClaw.
+benchmark gates, and implementation roadmap for BoardClaw.
 
 Read in this order:
 
@@ -12,13 +12,16 @@ Read in this order:
 5. [Technical Possibility](technical-possibility.md)
 6. [Model and Language Strategy](model-and-language.md)
 7. [Board Profiles](board-profiles.md)
-8. [Raspberry Pi First Plan](raspberry-pi-first.md)
+8. [First Version](first-version.md)
 9. [Use Cases](use-cases.md)
 10. [Risks and Mitigations](risks.md)
-11. [Uniclaw and SecuClaw Integration](uniclaw-secuclaw.md)
+11. [Approval and Receipts](receipt-and-mobile-approval.md)
 12. [Roadmap](roadmap.md)
 13. [References](references.md)
 
-The shortest summary:
+Shortest summary:
 
-> Build RasClaw first, but make every internal interface belong to BoardClaw.
+> Build BoardClaw as a board-aware local AI control runtime. Prove it first on
+> Raspberry Pi 5 for IoT, Orange Pi 5 Plus for smart home, and Jetson Orin Nano
+> for robotics, while keeping every interface ready for the final multi-board
+> platform.

@@ -1,0 +1,43 @@
+{
+  "id": "phase-08-approval-receipts",
+  "phase": "Phase 08: Approval And Receipts",
+  "status": "planned",
+  "summary": "High-risk actions can become pending, be approved once, execute, and record verifiable proposal/approval/execution metadata.",
+  "metrics": [
+    {
+      "name": "approval.proposal_create_success",
+      "operator": "eq",
+      "expected": 1,
+      "unit": "bool",
+      "reason": "BoardClaw must be able to create typed proposals for risky actions."
+    },
+    {
+      "name": "approval.pending_blocks_execution_rate",
+      "operator": "eq",
+      "expected": 1.0,
+      "unit": "ratio",
+      "reason": "Pending approval must block dangerous tool execution."
+    },
+    {
+      "name": "approval.expired_denial_rate",
+      "operator": "eq",
+      "expected": 1.0,
+      "unit": "ratio",
+      "reason": "Expired approvals must not execute physical actions."
+    },
+    {
+      "name": "approval.valid_executes_once_rate",
+      "operator": "eq",
+      "expected": 1.0,
+      "unit": "ratio",
+      "reason": "A valid approval must be single-use."
+    },
+    {
+      "name": "receipt.chain_verification_success",
+      "operator": "eq",
+      "expected": 1,
+      "unit": "bool",
+      "reason": "Proposal, approval, and execution metadata must verify as a chain."
+    }
+  ]
+}

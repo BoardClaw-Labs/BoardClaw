@@ -3,7 +3,8 @@
 BoardClaw stores expected benchmark thresholds before implementation and actual
 benchmark results after implementation.
 
-This protects the project from "it works on my board" drift.
+This protects the project from "it works on my board" drift and keeps open
+source contributors aligned on measurable exit criteria.
 
 ## Directory Layout
 
@@ -11,15 +12,22 @@ This protects the project from "it works on my board" drift.
 benchmarks/
   expected/
     phase-00-ci.json
-    phase-01-rasclaw-mvp.json
-    ...
+    phase-01-raspberry-pi-iot.json
+    phase-02-orange-pi-smart-home.json
+    phase-03-jetson-robotics.json
+    phase-04-shared-safety-layer.json
+    phase-05-cross-board-demo.json
+    phase-06-more-board-profiles.json
+    phase-07-provider-acceleration.json
+    phase-08-approval-receipts.json
+    phase-09-release-hardening.json
   results/
     phase-00-ci-baseline.json
-    phase-01-rasclaw-mvp-rpi5-YYYYMMDD.json
+    phase-01-raspberry-pi-iot-rpi5-YYYYMMDD.json
 ```
 
 Expected files are committed. Actual baseline files that describe meaningful
-project milestones should be committed. Temporary CI or local results use
+milestones should be committed. Temporary CI or local results use
 `*.latest.json` or `*.local.json` and are ignored.
 
 ## Benchmark File Contract
@@ -46,7 +54,7 @@ Metric operators:
 4. Collect actual benchmark results.
 5. Compare actual results with expected thresholds.
 6. Save meaningful baseline results in `benchmarks/results/`.
-7. Update docs if the result changes the risk or support status.
+7. Update docs if the result changes risk, support status, or defaults.
 
 ## Commands
 
@@ -80,9 +88,12 @@ CI must run:
 - benchmark spec validation
 - phase-00 benchmark comparison
 
-Later hardware phases should add dedicated workflows or self-hosted runners.
-Hardware-dependent benchmarks must have a simulation path for pull requests and
-a real-board path for release qualification.
+Hardware-dependent benchmarks must have:
+
+- simulation path for pull requests
+- real-board path for release qualification
+- board/provider/model metadata in the result file
+- clear failure reason when hardware is absent
 
 ## Benchmark Philosophy
 
@@ -90,14 +101,16 @@ Benchmarks must measure risk, not vanity.
 
 Good metrics:
 
-- whether unsafe actions are denied
+- unsafe actions denied
 - daemon idle memory
 - model route latency
+- provider health checks
 - tool-call success rate
-- hallucinated-tool rate
+- hallucinated-tool denial rate
 - hardware timeout behavior
 - restart persistence
-- receipt verification
+- thermal throttling
+- approval and receipt verification
 
 Weak metrics:
 
@@ -106,3 +119,37 @@ Weak metrics:
 - unsupported board performance claims
 - screenshots without machine-readable results
 
+## Reference Board Benchmarks
+
+### Raspberry Pi 5
+
+Measure:
+
+- local provider health
+- GPIO/I2C/UART read-only success
+- MQTT loopback
+- camera timeout behavior
+- approved simulated GPIO write
+- thermal and power warnings
+
+### Orange Pi 5 Plus
+
+Measure:
+
+- CPU/Ollama route
+- Home Assistant service simulation
+- MQTT automation loop
+- storage/event persistence
+- RK3588 family reuse
+- NPU path only when conversion is proven
+
+### Jetson Orin Nano
+
+Measure:
+
+- NVIDIA provider health
+- camera/VLM route visibility
+- ROS 2 bounded publish
+- motion denial without safety metadata
+- no direct model motor loop
+- thermal and memory pressure

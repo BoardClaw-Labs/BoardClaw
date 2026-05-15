@@ -16,5 +16,5 @@ including exploit details.
 - Raw root shell access is not a feature.
 - Write tools are gated by default.
 - Physical safety cannot be delegated to prompts.
-- High-risk actions should become Uniclaw/SecuClaw approval flows when that
+- High-risk actions should become explicit approval and receipt flows when that
   integration exists.

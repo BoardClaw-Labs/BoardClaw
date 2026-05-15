@@ -1,0 +1,50 @@
+{
+  "id": "phase-02-orange-pi-smart-home",
+  "phase": "Phase 02: Orange Pi 5 Plus Smart Home Profile",
+  "status": "planned",
+  "summary": "Orange Pi 5 Plus validates smart-home gateway workflows and the first RK3588 family profile.",
+  "metrics": [
+    {
+      "name": "orange_pi.profile_tier",
+      "operator": "gte",
+      "expected": 2,
+      "unit": "tier",
+      "reason": "The smart-home reference should validate detection and read-only hardware tools."
+    },
+    {
+      "name": "provider.cpu_ollama_route_success",
+      "operator": "eq",
+      "expected": 1,
+      "unit": "bool",
+      "reason": "Orange Pi support must not depend on NPU conversion."
+    },
+    {
+      "name": "home_assistant.service_sim_success",
+      "operator": "eq",
+      "expected": 1,
+      "unit": "bool",
+      "reason": "Smart-home service calls must be testable before controlling a real home."
+    },
+    {
+      "name": "mqtt.loopback_p95_ms",
+      "operator": "lte",
+      "expected": 500,
+      "unit": "ms",
+      "reason": "Local smart-home event loops should be interactive."
+    },
+    {
+      "name": "device_graph.restart_persistence",
+      "operator": "eq",
+      "expected": 1,
+      "unit": "bool",
+      "reason": "Automation inventory and history must survive daemon restarts."
+    },
+    {
+      "name": "rk3588.family_reuse_ready",
+      "operator": "eq",
+      "expected": 1,
+      "unit": "bool",
+      "reason": "Orange Pi should create reusable RK3588 family data for later boards."
+    }
+  ]
+}
