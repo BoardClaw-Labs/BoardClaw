@@ -9,6 +9,23 @@ The first completed BoardClaw version should ship three reference profiles:
 This is the right first version because it proves three very different board
 classes without exploding the project scope.
 
+## User-Selectable Modes
+
+BoardClaw v1 should not force every feature onto every user.
+
+Supported install modes:
+
+| Mode | Typical board | Enabled features |
+|---|---|---|
+| IoT only | Raspberry Pi 5 | sensors, GPIO read, MQTT, camera, local web/API |
+| Smart Home only | Orange Pi 5 Plus | Home Assistant, MQTT, device graph, dashboard |
+| Robotics only | Jetson Orin Nano | camera/perception, ROS 2, bounded motion proposals |
+| Single-device combined | strongest available board | any supported feature set the board can safely host |
+| Hub and nodes | Orange Pi hub plus Pi/Jetson nodes | split sensors, smart-home gateway, robotics/perception |
+
+The user chooses enabled features. Disabled features must hide their tools from
+the model and from normal control flows.
+
 ## First-Version Product Promise
 
 A technical user should be able to install BoardClaw on a supported reference
@@ -37,6 +54,50 @@ board and:
 
 Telegram, Matrix, and mobile/PWA approval can come later. They should not be
 required for the first completed version.
+
+## Deployment Examples
+
+### One-Device Smart Home
+
+```text
+Orange Pi 5 Plus
+  boardclawd
+  local web dashboard
+  SQLite memory
+  Ollama/llama.cpp local model
+  MQTT
+  Home Assistant
+```
+
+No Raspberry Pi or Jetson is required.
+
+### One-Device Robotics
+
+```text
+Jetson Orin Nano
+  boardclawd
+  camera/perception
+  ROS 2 bridge
+  local text model
+  local vision route when benchmarked
+```
+
+No Smart Home tools are enabled unless the user chooses them.
+
+### Multi-Device Home Lab
+
+```text
+Raspberry Pi 5:
+  sensor/GPIO node
+
+Orange Pi 5 Plus:
+  BoardClaw hub, dashboard, memory, MQTT, Home Assistant
+
+Jetson Orin Nano:
+  robotics/perception node
+```
+
+This is the official final v1 demonstration environment.
 
 ## Shared First-Version Stack
 
@@ -226,6 +287,7 @@ The model must never own the direct motor loop.
 BoardClaw first version is complete when:
 
 - all three profiles boot in simulation
+- a user can install only the feature mode they need
 - each reference board has real hardware validation for its core use case
 - local model routing is visible and benchmarked
 - write tools are denied without policy approval
@@ -247,3 +309,13 @@ BoardClaw v1 =
   + audit log
   + benchmark results per board
 ```
+
+## Required V1 Test Reports
+
+The final v1 release should include saved reports for:
+
+- Raspberry Pi 5 IoT profile on real hardware
+- Orange Pi 5 Plus Smart Home profile on real hardware
+- Jetson Orin Nano Robotics profile on real hardware or safe robotics simulator
+- cross-board demo across all three reference profiles
+- safety layer denial/approval behavior across all three profile types

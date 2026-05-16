@@ -18,6 +18,19 @@ platform that can run private local models, understand device context, route
 actions through narrow tools, and keep risky physical operations visible,
 approved, and recoverable.
 
+![BoardClaw vision: one local AI control plane connecting IoT sensors, smart home automation, robotics, human approval, and safe hardware boundaries.](docs/assets/boardclaw-vision.png)
+
+## Project Memory
+
+The permanent direction is captured in [Project Memory](docs/project-memory.md):
+
+```text
+BoardClaw is one project.
+Boards are profiles.
+Features are optional.
+Use cases are reference deployments.
+```
+
 ## First Version
 
 The first complete BoardClaw version focuses on three reference boards:
@@ -249,6 +262,7 @@ and multi-board profiles.
 - [Vision and Goals](docs/vision.md)
 - [Development Plan](docs/development-plan.md)
 - [Benchmarking](docs/benchmarking.md)
+- [Project Memory](docs/project-memory.md)
 - [Architecture](docs/architecture.md)
 - [Technical Possibility](docs/technical-possibility.md)
 - [Model and Language Strategy](docs/model-and-language.md)
@@ -265,4 +279,6 @@ and multi-board profiles.
 Planning and bootstrap implementation.
 
 The repository has a CI-first Rust workspace, benchmark expectation files, and
-an initial
+an initial `boardclaw-core` crate for project contracts. The next work is Phase
+01: Raspberry Pi 5 IoT profile, while keeping the shared core, policy,
+provider, tool, and event contracts generic for all BoardClaw profiles.

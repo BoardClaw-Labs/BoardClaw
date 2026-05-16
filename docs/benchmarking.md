@@ -56,6 +56,44 @@ Metric operators:
 6. Save meaningful baseline results in `benchmarks/results/`.
 7. Update docs if the result changes risk, support status, or defaults.
 
+## Result Levels
+
+BoardClaw uses three result levels so maintainers know what was actually proven.
+
+| Level | Environment | Required for |
+|---|---|---|
+| CI | GitHub Actions, no hardware | every pull request |
+| Simulation | fake provider and fake hardware backend | every phase before real hardware |
+| Real Environment | physical board or approved robotics simulator | profile support claims and v1 release |
+
+Do not mark a board feature as supported from CI-only evidence. CI proves code
+shape. Simulation proves routing and policy. Real environment results prove
+hardware behavior.
+
+## Real Environment Result Metadata
+
+Every real-board result file should include:
+
+- phase id
+- board id
+- board revision if known
+- OS image and kernel
+- BoardClaw commit SHA
+- provider name and version
+- model name, quantization, and context length
+- enabled feature mode
+- connected hardware fixture
+- cooling and power notes
+- metrics
+- failure notes
+- maintainer name or handle
+
+Example result filename:
+
+```text
+benchmarks/results/phase-01-raspberry-pi-iot-rpi5-20260601.json
+```
+
 ## Commands
 
 Validate expected benchmark files:
@@ -132,6 +170,14 @@ Measure:
 - approved simulated GPIO write
 - thermal and power warnings
 
+Real environment pass condition:
+
+- detects `raspberry_pi_5`
+- reads a known GPIO/I2C/UART fixture
+- publishes and receives MQTT loopback
+- captures camera frame or returns clear camera-unavailable error
+- denies unsafe write without approval
+
 ### Orange Pi 5 Plus
 
 Measure:
@@ -143,6 +189,14 @@ Measure:
 - RK3588 family reuse
 - NPU path only when conversion is proven
 
+Real environment pass condition:
+
+- detects `orange_pi_5_plus`
+- runs CPU local model provider route
+- queries Home Assistant test instance
+- records device graph and survives restart
+- keeps RK acceleration experimental unless benchmarked
+
 ### Jetson Orin Nano
 
 Measure:
@@ -153,3 +207,21 @@ Measure:
 - motion denial without safety metadata
 - no direct model motor loop
 - thermal and memory pressure
+
+Real environment pass condition:
+
+- detects `jetson_orin_nano`
+- records Jetson provider capability
+- captures or simulates camera/perception result
+- publishes bounded ROS 2 command in simulation or safe test robot
+- denies movement without safety metadata
+
+## Cross-Board Demo Result
+
+The final v1 demo result should prove:
+
+- Raspberry Pi 5 publishes IoT state.
+- Orange Pi 5 Plus receives the state and evaluates Smart Home context.
+- Jetson Orin Nano provides perception or robot inspection proposal.
+- one trace id links the full flow.
+- one dashboard/event log explains decisions, denials, approvals, and results.
