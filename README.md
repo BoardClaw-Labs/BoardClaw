@@ -265,6 +265,4 @@ and multi-board profiles.
 Planning and bootstrap implementation.
 
 The repository has a CI-first Rust workspace, benchmark expectation files, and
-an initial `boardclaw-core` crate for project contracts. The next work is Phase
-01: Raspberry Pi 5 IoT profile, while keeping the shared core, policy, provider,
-tool, and event contracts generic for all three reference profiles.
+an initial
