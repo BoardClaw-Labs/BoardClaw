@@ -18,7 +18,7 @@ platform that can run private local models, understand device context, route
 actions through narrow tools, and keep risky physical operations visible,
 approved, and recoverable.
 
-![BoardClaw vision: one local AI control plane connecting IoT sensors, smart home automation, robotics, human approval, and safe hardware boundaries.](docs/assets/boardclaw-vision.png)
+![BoardClaw edge mission control vision map with a cute red claw on an edge board, IoT, Smart Home, Robotics, safety boundaries, and supported board names.](docs/assets/boardclaw-vision.png)
 
 ## Project Memory
 
