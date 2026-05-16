@@ -1,7 +1,17 @@
 # Roadmap
 
 BoardClaw should be built as three deep reference profiles on one shared core.
-Each phase has a matching expected benchmark file.
+Each phase has a matching expected benchmark file and a documented real
+environment result before support is claimed.
+
+Supported v1 deployment styles:
+
+- one board with one enabled feature mode
+- one board with multiple enabled feature modes, if hardware allows
+- hub and node deployment across specialized boards
+
+The detailed gates, real-board test expectations, and saved-result requirements
+live in [Development Plan](development-plan.md).
 
 ## Phase 0: Core Contracts
 
